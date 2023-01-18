@@ -10,6 +10,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
                                         
                                         show.sample.names = TRUE, show.border= FALSE, show.multis= FALSE, rem.empty= TRUE, # ******* what params to show in legend?
                                         
+                                        split.cols.by = NULL, 
+                                        
                                         heatmap.legend.side= "right",
                                         
                                         mut.legend.title.side= "topleft", # this can only be topleft/topcenter/ etc. otherwise error
@@ -22,7 +24,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
                                         
                                         num.rows.annot.lgd= NULL,  #******* ANNOT.legend 
                                         
-                                        min.freq= 1, show.title= TRUE, title.str= NULL, save.path= save.path, #******* title and save path
+                                        min.freq= 1, show.title= TRUE, 
+                                        
+                                        title.str= NULL, 
+                                        
+                                        save.path= save.path, #******* title and save path
                                         
                                         save.name= NULL,
                                         
@@ -32,7 +38,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
                                         
                                         multis.dot.size = 0.8, #****FONTs: row.groupname.font is the same as rows.font
                                         
-                                        right.w= 13, top.w= 8 , robbon.size= 2, w=3200, h=1800,  #**** Sizes of barplots and fig 
+                                        right.w= 13, top.w= 8 , ribbon.size= 2, w=3200, h=1800,  #**** Sizes of barplots and fig 
                                         
                                         axis.side= "left"){
   
@@ -112,13 +118,18 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   if (!is.null(cnvs) & !is.data.frame(cnvs)) {cnvs = as.data.frame(cnvs)}
   if (!is.null(svs) & !is.data.frame(svs)) {svs = as.data.frame(svs)}
   
+  
+  dir.create(file.path(savePath,"TEMP"), showWarnings=FALSE)
+  
+  
   ###############################################################
   # == Test Required cols and contents  ====
   ##############################################################
   
   source(file.path("./sub_function/test_required_fields.R"))
   
-  rename_IDs <- test_required_fields(muts= muts,  svs=svs, cnvs=cnvs, show.another.banner= show.another.banner, banner.name= banner.name, show.response= show.response, show.individuals= show.individuals, lookup.table= lookup.table)
+  rename_IDs <- test_required_fields(muts= muts,  svs=svs, cnvs=cnvs, show.another.banner= show.another.banner, banner.name= banner.name, show.response= show.response, 
+                                     split.cols.by= split.cols.by, show.individuals= show.individuals, lookup.table= lookup.table)
   
   muts <- rename_IDs$muts
   cnvs <- rename_IDs$cnvs
@@ -156,7 +167,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   
   source(file.path("./sub_function/sort_variants.R"))
   
-  A <- sort_variants(muts, muts.order, gene.list = NULL, group.label= "Substitusions/Indels", variants.class= "Mutations")
+  A <- sort_variants(muts, muts.order, group.label= "Substitusions/Indels", variants.class= "Mutations")
   
   data <- A[[1]][,c("TARGET_NAME","GENE","EFFECT")]
   
@@ -174,7 +185,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     
     data <- rbind(data, B[[1]][,c("TARGET_NAME","GENE","EFFECT")])
     
-    gene.list <- B$gene.list
+    gene.list <- rbind(gene.list, B$gene.list)
     
   }
   
@@ -186,11 +197,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     
     source(file.path("./sub_function/sort_variants.R"))
     
-    D <- sort_variants(cnvs, cnvs.order, gene.list, group.label= "CNVs", variants.class= "CNVs")
+    D <- sort_variants(cnvs, cnvs.order, group.label= "Cytogenetics", variants.class= "CNVs")
     
     data <- rbind(data, D[[1]][,c("TARGET_NAME","GENE","EFFECT")])
     
-    gene.list <- D$gene.list
+    gene.list <- rbind(gene.list,D$gene.list)
   }
   
   ###############################################################
@@ -233,14 +244,18 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   ##############################################################
   data$EFFECT <- tolower(data$EFFECT)
   
-  data$EFFECT <- gsub("^missense$|^non_synonymous_codon$|^missense_codon$","missense", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^stop_gained$|^stop_gain$|^stop_lost$|^stop_retained_variant$","stop_gain", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^splice_site_variant$","splice_site_variant", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^initiator_codon_change$","initiator_codon_change", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^inframe_codon_loss$|^inframe_indel$|^inframe_deletion$|^inframe_codon_gain$|^inframe_insersion$|^inframe_variant$","inframe_indel", ignore.case = TRUE, data$EFFECT)
+  ### FUTURE CORRECTION : Non-stop mutation must have a sep cat
+  
+  data$EFFECT <- gsub("^missense$|^non_synonymous_codon$|^missense_codon$|^missense_mutation$|^nonstop_mutation$","missense", ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^stop_gained$|^stop_gain$|^stop_lost$|^stop_retained_variant$|^nonsense_mutation$","stop_gain", ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^splice_site_variant$|^splice_site$","splice_site_variant", ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^initiator_codon_change$|^translation_start_site$","initiator_codon_change", ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^inframe_codon_loss$|^inframe_indel$|^inframe_deletion$|^inframe_codon_gain$|^inframe_insersion$|^inframe_variant$|^in_frame_del$|^in_frame_ins$","inframe_indel", ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^complex_change_in_transcript$|^complex$","complex",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^other_snvs$","other_snvs",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^frameshift_indel$|^frameshift_del$|^frameshift_variant$","frameshift_indel",ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^other_cnvs$|^other_alterations$","other_cnvs",ignore.case = TRUE, data$EFFECT)
+  
+  data$EFFECT <- gsub("^frameshift_indel$|^frameshift_del$|^frameshift_variant$|^frame_shift_del$|^frame_shift_ins$","frameshift_indel",ignore.case = TRUE, data$EFFECT)
   
   # data$EFFECT <- gsub("^frameshift_insersion$|^frameshift_ins$","frameshift_insersion",ignore.case = TRUE, data$EFFECT) # recently added
   
@@ -249,12 +264,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   data$EFFECT <- gsub("^LOH$","loh", ignore.case = TRUE,  data$EFFECT)
   data$EFFECT <- gsub("^unknown$","unknown",ignore.case = TRUE, data$EFFECT)
   
+  data$EFFECT <- gsub("^rearrangement$|^rear$|^rearr$", "rearr", ignore.case = TRUE, data$EFFECT)
+  
   data$EFFECT <- gsub("^inv$|^inversion$", "inv", ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^tandem duplications$|^tandem_duplications$|^tandem dup$","tdup", ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^fusion$|^fus$","fusion",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^translocation$|^trans$","trans",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^other_svs$","other_svs",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^n/e$|^inconclusive$|^n_e$|^n_a$","inconclusive",ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^n/e$|^inconclusive$|^n_e$|^n_a$|^unavailable$|^unavail$","unavailable",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^complex_karyotype$","complex_karyotype",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^normal_karyotype$|^normal$","normal",ignore.case = TRUE, data$EFFECT)
   
@@ -262,11 +279,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   # Test EFFECTs  ====
   ####################################
   
-  valid.effects <- tolower(c("missense","stop_gain","splice_site_variant","initiator_codon_change",
-                             "inframe_indel","complex","other_snvs","frameshift_indel","unknown", "fusion",
-                             "AMP","DEL","LOH","INV","TDUP","FUS","TRANS","OTHER_SVs","complex_karyotype", 
-                             "DER","ADD","Normal","inconclusive"
-  ))
+  valid.effects <- tolower(rename_IDs$valid.effects)
   
   data$EFFECT <- tolower(data$EFFECT)
   
@@ -297,8 +310,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   
   events <- factor(unique(data$EFFECT), levels=c("unknown","other_snvs","missense","splice_site_variant","initiator_codon_change",
                                                  "complex","complex_karyotype","stop_gain","inframe_indel",
-                                                 "frameshift_indel","amp","del","loh","inv","fusion","trans","tdup","add","der",
-                                                 "other_svs","inconclusive","normal"))
+                                                 "frameshift_indel","amp","del","loh","inv","rearr","fusion","trans","tdup","add","der",
+                                                 "other_svs","other_cnvs","other","unavailable","normal","karyotypic_abnormal"))
   events <- events[order(events)]
   
   events <- as.character(events)
@@ -373,54 +386,73 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     trans =function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["trans"]][1],  col = NA))
     },
+    rearr =function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["rearr"]][1],  col = NA)) # coloring rearrangement as trans.
+    },
     other_svs =function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["other_svs"]][1],  col = NA))
     },
     tdup =function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["tdup"]][1],  col = NA))
     },
-    inconclusive=function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["inconclusive"]][1],  col = NA))
-    },
+    # inconclusive=function(x, y, w, h) { # merged this with unavailable
+    #   grid.rect(x, y, w-unit(0.3, "mm"),  h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["inconclusive"]][1],  col = NA))
+    # },
     der = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["der"]][1],  col = NA))
     },
     add = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["add"]][1],  col = NA))
     },
+    other_cnvs = function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["other_cnvs"]][1],  col = NA)) # same color as other_svs
+    },
     multi_hit = function(x, y, w, h) {
       grid.points(x, y, pch = 21, size = unit(multis.dot.size, "cm"), gp = gpar(col = "black", fill= "#FAEFD1"))
     },
     normal = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["normal"]][1]  , col = NA))
+    },
+    unavailable = function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["NA"]][1]  , col = NA))
+    },
+    karyotypic_abnormal = function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = "salmon"  , col = NA))
     }
   )
   
-  EFFECT <- list(variants = c("missense","stop_gain","frameshift_indel",
-                              "inframe_indel","splice_site_variant",
-                              "initiator_codon_change",
-                              "complex",
-                              "unknown",  "complex_karyotype",
-                              "amp",     
-                              "del",  "loh",  "inv",      
-                              "fusion",   
-                              "trans", "other_svs","tdup",
-                              "add","der",
-                              "other_snvs",
-                              "multi_hit","inconclusive","normal"), 
-                 
-                 labels= c("Missense","Stop-gain","Frameshift indel",
-                           "Inframe indel","Splicing variant",
-                           "Initiator_codon change",
-                           "Complex", 
-                           "Unknown", "Complex karyotype",  
-                           "Amplification",
-                           "Deletion","cnLOH", "Inversion",
-                           "Fusion",
-                           "Translocation","Other SVs","Tandem duplication",
-                           "Add.","Der.",
-                           "Other mutations",
-                           "Multiple variants","Inconclusive","Normal"))
+  EFFECT.all <- list(variants = c("missense","stop_gain","frameshift_indel",
+                                  "inframe_indel","splice_site_variant",
+                                  "initiator_codon_change",
+                                  "complex",
+                                  "unknown",  "complex_karyotype",
+                                  "amp",     
+                                  "del",  "loh",  "inv",      
+                                  "fusion",   
+                                  "trans", "other_svs","tdup","rearr",
+                                  "add","der",
+                                  "other_snvs",
+                                  "other_cnvs",
+                                  "multi_hit","unavailable","normal","karyotypic_abnormal"), 
+                     
+                     labels= c("Missense","Stop-gain","Frameshift indel",
+                               "Inframe indel","Splicing variant",
+                               "Initiator_codon change",
+                               "Complex", 
+                               "Unknown", "Complex karyotype",  
+                               "Amplification",
+                               "Deletion","cnLOH", "Inversion",
+                               "Fusion",
+                               "Translocation","Other SVs","Tandem duplication", "Rearrangement",
+                               "Add.","Der.",
+                               "Other mutations",
+                               "Other CN alterations",
+                               "Multiple variants","Unavailable","Normal","Karyotypic abnormal"))
+  
+  EFFECT <- list (variants = EFFECT.all[[1]][EFFECT.all[[1]] %in% data$EFFECT],
+                  labels = EFFECT.all[[2]][EFFECT.all[[1]] %in% data$EFFECT]
+  )
+  
   
   LABS <- factor(gene.list$LAB, levels=c("Substitusions/Indels","Cytogenetics","CNVs", "SVs"))
   
@@ -483,7 +515,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     
     cat(paste0("\nPrepare new annotation bar...\n"))
     
-    uniq.grps <- unique(lookup.table[,toupper(banner.name)]) 
+    # uniq.grps <- unique(lookup.table[,toupper(banner.name[1])])
+    
+    uniq.grps <- unique(as.vector(as.matrix(lookup.table[,toupper(banner.name)])))
     
     if (is.factor(uniq.grps)) {
       uniq.grps = levels(uniq.grps)
@@ -505,6 +539,68 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     show.annot.legend <- c(show.annot.legend, "TRUE")
     
     rm(n1)
+    
+    num.features = length(banner.name)
+    
+    #----------------------------------------------------
+    # Assign universal colors to most common features
+    #----------------------------------------------------
+    
+    for (m in c("N/A","NA")) new.banner.col[[m]] <- "#444444" 
+    
+    for (m in c("MRD -"," 0: CR, MRD Negative","CR/CRi/MLFS MRD- (Conv.)","MRD-","CR/CRi/MLFS MRD-")) new.banner.col[[m]] <- "#80B1D3"
+    
+    for (m in c("CR/CRi/MLFS MRD- (after R1)")) new.banner.col[[m]] <-"#2166ac" 
+    
+    for (m in c("MRD+","CR/CRi/MLFS MRD+")) new.banner.col[[m]] <-"#F39C12"
+    
+    for (m in c("CR","C/R","Complete Response","Complete response")) new.banner.col[[m]] <- "#80B1D3"
+    
+    
+    for (m in c(" 1: Complete Remission")) new.banner.col[[m]] <- "#80B1D3"
+    
+    for (m in c(" 2: CR w/Incomplete count recovery (CRi)")) new.banner.col[[m]] <- "#8c96c6"
+    
+    for (m in c(" 3: MFLS (Morphologic Leukemia-Free State)")) new.banner.col[[m]] <- "#d4b9da"
+    
+    for (m in c("PR","P/R","Partial Response"," 4: Partial Remission")) new.banner.col[[m]] <-"#F39C12"
+    
+    for (m in c(" 5: Primary Refractory")) new.banner.col[[m]] <- "#f768a1"
+    
+    for (m in c(" 5: Progressive Disease","Persistent Disease"," 4: Persistent Disease")) new.banner.col[[m]] <-"#DA2310"
+    
+    for (m in c("10: Hematologic Relapse (After CR)")) new.banner.col[[m]] <- "#800026"
+    
+    for (m in c("NR","N/R","No Response","No response")) new.banner.col[[m]] <- "#DA2310" 
+    
+    
+    
+    for (m in c("no","No","NO")) new.banner.col[[m]] <- "#C1DAD6"
+    for (m in c("yes","Yes","YES")) new.banner.col[[m]] <- "#FC968B"
+    
+    #----------------------------------------------------
+    # Assign universal colors to most common platforms
+    #----------------------------------------------------
+    
+    for (m in c("ThunderBolts MSK-Heme")) new.banner.col[[m]] <- "#444444" 
+    for (m in c("Raindance")) new.banner.col[[m]] <- "#80B1D3"
+    for (m in c("Raindance-and-RAINDANCE THUNDERSTORM")) new.banner.col[[m]] <-"#2166ac"
+    for (m in c("IMPACT for Hematology-and-ThunderBolts MSK-Heme")) new.banner.col[[m]] <-"#F39C12"
+    for (m in c("IMPACT for Hematology")) new.banner.col[[m]] <- "#DA2310"
+    # for (m in c("MRD -","MRD-")) new.banner.col[[m]] <- "#df65b0"
+    # for (m in c("no","No","NO")) new.banner.col[[m]] <- "#C1DAD6"
+    # for (m in c("yes","Yes","YES")) new.banner.col[[m]] <- "#FC968B"
+    
+    #----------------------------------------------------
+    
+    TEMP <- replicate(num.features, new.banner.col, simplify = FALSE)
+    
+    names(TEMP) = toupper(banner.name)
+    
+    list.my.cols = c( list.my.cols, TEMP)
+    
+    
+    
   } 
   ####################################
   # == Prepare the survival data ====
@@ -629,6 +725,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     column_order= as.character(patients.order)
   }
   
+  if (!is.null(muts.order) & !is.null(cnvs) & is.null(cnvs.order)){ # is we have cnvs and also decided to pass cnvs.order
+    cnvs.order <- as.character(unique(cnvs$GENE))
+  }
+  
+  if (!is.null(muts.order) & !is.null(svs) & is.null(svs.order)){ # is we have cnvs and also decided to pass cnvs.order
+    svs.order <- as.character(unique(cnvs$GENE))
+  }
+  
   if (is.null(muts.order) & is.null(cnvs.order) & is.null(svs.order)){
     row_order = NULL
   } else {
@@ -640,11 +744,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   ##############################################################
   if (show.multis){  
     
-    ht.list = list(Legend(labels =  c(">1 Variant"),
+    ht.list = list(Legend(labels =  c(">1 variant"),
                           labels_gp = gpar(fontsize = legend.label.font),
                           type = "points",
                           pch = 21,
-                          size = unit(1, "cm"),
+                          size = unit(0.5, "cm"),
                           legend_gp = gpar(col = "black", fill= "#FAEFD1", lwd= 1, fontsize = legend.label.font),
                           background = NULL, grid_height = unit(1, "cm"),
                           grid_width = unit(1, "cm")))
@@ -683,9 +787,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   num.my.lgd.rows <- num.rows.heatmap.lgd 
   
   if (is.null(save.name)){
-    saveFile <- file.path(savePath,paste0("Heatmap_TEMP_minFreq_",min.freq,".jpg"))
+    saveFile <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,".jpg"))
   } else {
-    saveFile <- file.path(savePath,paste0("Heatmap_TEMP_minFreq_",min.freq,"_",save.name,".jpg"))
+    saveFile <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,"_",save.name,".jpg"))
   }
   
   source(file.path("./sub_function/draw_basic_oncoprint.R"))
@@ -768,7 +872,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     
     cat(paste0("\nPrepare bottom annotation ...\n"))
     
-    names(list.my.cols)[names(list.my.cols) == "new.banner.col"] <- toupper(banner.name)
+    # names(list.my.cols)[names(list.my.cols) == "new.banner.col"] <- toupper(banner.name[1])
     
     # anno_oncoprint_barplot(type = NULL, which = c("column", "row"),
     #                        bar_width = 0.6, axis = TRUE,
@@ -801,9 +905,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
     h2 = HeatmapAnnotation(df = df , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
                            col = list.my.cols,
                            na_col = "grey",
-                           simple_anno_size = unit(robbon.size, "cm"), # size of the ribbon
+                           simple_anno_size = unit(ribbon.size, "cm"), # size of the ribbon
                            annotation_height =c(20,20), # this controls the height of the response/etc annotation that is added to the columns. However, in order to use mutiple features (e.g., response/celltype/etc) you have to use c(20,20,..) otherwise this generates error
-                           gap = unit(c(5,5), "mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
+                           # gap = unit(c(5,5), "mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
+                           gap = unit(rep(5,ncol(df)),"mm"),
                            show_annotation_name= rep(TRUE,ncol(df)),
                            show_legend = as.logical(show.annot.legend),
                            #show_annotation_name= show.annot.legend, 
@@ -875,6 +980,26 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   
   cat(paste0("\nGenerate Final COMPLEX oncoprint ...\n"))
   
+  
+  if (!is.null(split.cols.by)){
+    
+    split.cols.by = toupper(split.cols.by)
+    
+    # a complicated select based on dynamic col-name that is passed in "split.cols.by"
+    # first select the dynamic col from lookup and then choose the order based on the sample-names in M.
+    # The final class must be numeric for proper depiction
+    
+    split.cols.order <-  as.numeric(as.factor(lookup.table[[split.cols.by]][match(colnames(M), lookup.table$TARGET_NAME)]))
+    
+    # split.cols.order <- as.numeric(lookup.table$RESPONSE.ELN.R1[match(colnames(M), lookup.table$TARGET_NAME)])
+  } else {
+    split.cols.order <- NULL
+  }
+  
+  
+  # split.cols.order <- as.numeric(lookup.table$RESPONSE.ELN.R1[match(colnames(M), lookup.table$TARGET_NAME)])
+  
+  
   ht <- oncoPrint(M, get_type = function(x) strsplit(x, ";")[[1]],
                   
                   alter_fun = alter_fun, col = append(list$mut.colors, list$cyto.colors),
@@ -888,6 +1013,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
                   remove_empty_columns = rem.empty,
                   
                   show_column_names = show.sample.names,
+                  
+                  column_split= split.cols.order, # this supposed to add a vertical gap between columns based on a selected characteristic of samples (SPLIT col in lookup-table)
+                  
+                  column_gap = unit(5, "mm"),
                   
                   # === Gene barplots on the left ====
                   
@@ -942,10 +1071,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   ## Draw simple.ht ====
   ##======================================================
   if (is.null(save.name)){
-    saveFile <- file.path(savePath,paste0("Heatmap_minFreq_",min.freq,"_Complex_Heatmap.jpg"))
+    saveFile <- file.path(savePath,paste0("Heatmap_minFreq_",min.freq,".jpg"))
     
   } else {
-    saveFile <- file.path(savePath,paste0("Heatmap_minFreq_",min.freq,"_Complex_Heatmap_",save.name,".jpg"))
+    saveFile <- file.path(savePath,paste0("Heatmap_minFreq_",min.freq,"_",save.name,".jpg"))
   }
   
   jpeg(saveFile, width=w, height=h, pointsize =14, res = 100)
@@ -960,7 +1089,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   
   dev.off()
   
-  final.sample_order <- colnames(M)[column_order(ht)]
+  if (!is.null(split.cols.by)){
+    cat(paste("\n*** NOTE ***You can not get the final ordered list of samples (column_order) if you have chosen to split the columns by RESPONSE.\n 
+              You can still get the list if you re-run the function and set split.by.response= FASLE. \n---> Future dev."))
+    final.sample_order = NULL
+  } else {
+    final.sample_order <- colnames(M)[column_order(ht)]
+  }
+  
   
   
   ###############################################################################
@@ -982,7 +1118,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   
   cat(paste("\n\nThe file is saved at",saveFile,"\n"))
   
-  return(list(ht.obj = ht,
+  return(list(ht.obj = ht, annotation_legend_list= lgd_list, heatmap_legend_list= ht.list,
               onco.samples= final.sample_order))
   
 }
