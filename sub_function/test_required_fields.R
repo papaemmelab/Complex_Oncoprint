@@ -1,11 +1,11 @@
-test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, 
+test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title.side= annot.title.side,
                                   patients.order= NULL, muts.order= NULL, cnvs.order= NULL, svs.order= NULL,
                                   show.another.banner=FALSE, banner.name= NULL, 
                                   show.response= FALSE, split.cols.by = NULL, show.individuals= FALSE, lookup.table= NULL)
   {
 
   #==================================================================================
-  #   Written by Noushin Farnoud, Jul 2018
+  #   Written by Noushin Farnoud, Jul 2018, Last Update Jan 2023  ----
   #----------------------------------------------------------------------------------
   #   This function tests the fields of MUTATIONS/CNVs/SVs dataframes that are
   #   mandatory field is missing.
@@ -88,13 +88,13 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL,
   required.cols <- c("TARGET_NAME","EFFECT")
   
   #=====================================================
-  # *** HINT: first change all col names to uppercase
+  # *** HINT: first change all col names to uppercase 
   #=====================================================
   if (!is.null(lookup.table)){
     lookup.table <- data.frame(lookup.table)
   }
   #=================================================
-  # == check field of MUTs and Mutations.VT
+  # == check field of MUTs and Mutations.VT ----
   #=================================================
   colnames(muts) <- toupper(colnames(muts))
   
@@ -116,27 +116,36 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL,
     cat(paste("\n**** test_required_fields TEST (2): successfull!\tAll mutations EFFECTs are consistent with available options (for coloring)...\n"))
   }
   
-  #========================
-  # == Check INPUT params
-  #========================
+  #===============================
+  # == Check INPUT params  ----
+  #===============================
   
   if (show.another.banner | show.response | show.individuals){
     if (is.null(lookup.table)){
     stop(paste("\n****Required INPUT for added annotation is missing =>\t","lookup.table" ,"\n"))
     }}
   
-  #========================
-  # == Check INPUT params
-  #========================
+  #===============================
+  # == Check INPUT params ----
+  #===============================
 
   if (!is.null(patients.order) & !is.vector(patients.order)){stop("input patients.order must be a simple vector.\n")}
   if (!is.null(muts.order) & !is.vector(muts.order)){stop("input muts.order must be a simple vector.\n")}
   if (!is.null(cnvs.order) & !is.vector(cnvs.order)){stop("input cnvs.order must be a simple vector.\n")}
   if (!is.null(svs.order) & !is.vector(svs.order)){stop("input svs.order must be a simple vector.\n")}
   
-  #========================
-  # == check field of SVs
-  #========================
+  #==============================================================================
+  # == ComplexHeatmap.OncoPrint func accepted mut.legend.title.side values ----
+  #==============================================================================
+  
+  if (!any((annot.title.side) %in% c("topleft", "topcenter", "leftcenter", "lefttop", "leftcenter-rot", "lefttop-rot"))){
+    stop("annot.title.side param can only be topleft/ topcenter / leftcenter / lefttop / leftcenter-rot/ lefttop-rot")
+  }
+  
+  
+  #===============================
+  # == check field of SVs  ----
+  #===============================
   if (!is.null(svs)){
     colnames(svs) <- toupper(colnames(svs))
     
@@ -147,9 +156,9 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL,
       cat(paste("\n**** test_required_fields TEST (3): successfull!\tAll required columns exist in SV dataframe...\n"))
     }}
   
-  #========================
-  # == check field of CNVs
-  #========================
+  #===============================
+  # == check field of CNVs  ----
+  #===============================
   
   if (!is.null(cnvs)){
     
@@ -163,9 +172,9 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL,
     }}
   
 
-  #===================================================
-  # == check field of SAMPLE.SOURCE (i.e., cell.type)
-  #===================================================
+  #=========================================================
+  # == check field of SAMPLE.SOURCE (i.e., cell.type)  ----
+  #=========================================================
   required.cols.lookup <- c("TARGET_NAME")
   
   if (show.another.banner){
@@ -203,6 +212,7 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL,
       cat(paste("\n**** test_required_fields (5): successfull!\tAll required columns exist in lookup.table... \n"))
     }}
 
+  #=========================================================
 
   return(list(muts= muts, svs= svs, cnvs= cnvs, 
               lookup.table=lookup.table, 

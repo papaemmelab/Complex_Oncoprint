@@ -47,8 +47,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   library(randomcoloR)
   library(ComplexHeatmap)
   library(RColorBrewer)
+  library(stringr)
   library(plyr)
   library(dplyr)
+  
+  graphics.off()
   
   #==================================================================================
   #   Written by Noushin Farnoud, Jul 2018. Last Update Dec June 2020  ====
@@ -131,7 +134,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   source(file.path("./sub_function/test_required_fields.R"))
   
   rename_IDs <- test_required_fields(muts= muts,  svs=svs, cnvs=cnvs, show.another.banner= show.another.banner, banner.name= banner.name, show.response= show.response, 
-                                     split.cols.by= split.cols.by, show.individuals= show.individuals, lookup.table= lookup.table)
+                                     split.cols.by= split.cols.by, show.individuals= show.individuals, lookup.table= lookup.table, annot.title.side= annot.title.side)
   
   muts <- rename_IDs$muts
   cnvs <- rename_IDs$cnvs
@@ -527,7 +530,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
   
   if ((show.another.banner) | (show.response) | (show.individuals) ) {
     source(file.path("./sub_function/prepare_BOTTOM_annotation.R"))
-    BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,legend.title.font,legend.label.font,annot.title.side,num.rows.annot.lgd, show.annot.legend, ribbon.size)
+    BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,legend.title.font,legend.label.font,annot.title.side,num.rows.annot.lgd, show.annot.legend, ribbon.size, show.individuals= show.individuals)
     
     h2 <- BotAnnot$h2
     df <- BotAnnot$df.updated
@@ -613,12 +616,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
                   
                   # === Column/Sample names ====
                   column_names_gp = gpar(cex=1, col= "black", fontsize = cols.font, fontface="bold"), #default size = 18
-                  column_names_max_height= unit(15,"cm") , # adjust this to control the name of samples (col names)
+                  column_names_max_height= unit(20,"cm") , # adjust this to control the name of samples (col names)
                   
                   # === Percent ====
                   pct_gp=gpar(fontsize = pct.font, fontface = "bold", col="black"), # specific control over percentage info on the left (add col="blue" to change colors)
                   row_names_gp = gpar(fontsize = rows.font, fontface="bold"), # gene-names and percent (if not prc_gp is defined above)
-                  row_title_gp = gpar(fontsize =rows.font, col="blue",fontface = "bold"),
+                  row_title_gp = gpar(fontsize =rows.font+3, col="blue",fontface = "bold"),
                   
                   # === Legend ====
                   # heatmap_legend_param = gg_list # list of list does not work here!

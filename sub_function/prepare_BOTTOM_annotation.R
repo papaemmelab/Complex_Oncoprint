@@ -1,4 +1,4 @@
-prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.label.font, annot.title.side, num.rows.annot.lgd, show.annot.legend, ribbon.size){
+prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.label.font, annot.title.side, num.rows.annot.lgd, show.annot.legend, ribbon.size, show.individuals= FALSE){
   
     
     cat(paste0("\nPrepare bottom annotation ...\n"))
@@ -30,8 +30,15 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
     #### Define Bottom Annotation obj (e.g., RESPONSE) ====
     ########################################################
     
+    if (!(show.individuals)){
+      df$INDIVIDUAL.ID <- NULL
+    }
+    
     colnames(df)[colnames(df) == 'INDIVIDUAL.ID'] <- 'Patient.ID'
     names(list.my.cols)[names(list.my.cols) == 'INDIVIDUAL.ID'] <- 'Patient.ID'
+    
+    colnames(df) <- str_to_title(colnames(df)) 
+    names(list.my.cols) <- str_to_title(names(list.my.cols))
     
     h2 = HeatmapAnnotation(df = df , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
                            col = list.my.cols,
