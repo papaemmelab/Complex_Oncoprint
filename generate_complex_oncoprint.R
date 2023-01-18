@@ -1,4 +1,4 @@
-generate_complex_oncoprint_v2 <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # define variants DFs
+generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # define variants DFs
                                            
                                            cnvs.order= NULL, svs.order= NULL, muts.order= NULL, patients.order= NULL,   # define pre-set orders
                                            
@@ -42,6 +42,7 @@ generate_complex_oncoprint_v2 <-  function(muts= muts, cnvs= NULL, svs= NULL ,  
                                            
                                            axis.side= "left"){
   
+  ## this is the edits in DEV branch
   
   library(randomcoloR)
   library(ComplexHeatmap)
@@ -268,7 +269,7 @@ generate_complex_oncoprint_v2 <-  function(muts= muts, cnvs= NULL, svs= NULL ,  
     df <- merge(df, lookup.table[,REQ.cols], by=c("TARGET_NAME"), all.x = TRUE)
     
     if (any(is.na(df$INDIVIDUAL.ID))) {
-      stop("\n***An error occured in merging dataframe of variants with LOOKUP.TABLE, and you have INDIVIDUAL.IDs= NA.\n This can occur if the key TARGET_NAME in MUTs and LOOKUP.TABLE are inconsistent!\n")
+      stop("\n***An error occured in merging dataframe of variants with LOOKUP.TABLE. \nYou have at least one sample where INDIVIDUAL.IDs= NA.\n This can occur if the key TARGET_NAME in MUTs and LOOKUP.TABLE are inconsistent!\n")
     }
   }
   

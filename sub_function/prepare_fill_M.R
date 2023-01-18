@@ -40,6 +40,8 @@ prepare_fill_M <- function(data, SAMPLES, GENES, lookup.table, rem.empty, gene.l
   
   events <- as.character(events)
   
+  data$GENE <- as.character(data$GENE)
+  
   for (i in 1: length(events)){
     
     temp <- subset(data, EFFECT==events[i])
