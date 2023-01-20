@@ -46,7 +46,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            axis.side= "left"){
   
-  ## this is the edits in DEV branch
+  ## sanity check! main branch
   
   library(randomcoloR)
   library(ComplexHeatmap)
