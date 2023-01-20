@@ -1,12 +1,16 @@
-generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # define variants DFs
+generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # ******* define variants DFs [mut is required]
                                            
-                                           cnvs.order= NULL, svs.order= NULL, muts.order= NULL, patients.order= NULL,   # define pre-set orders
+                                           cnvs.order= NULL, svs.order= NULL, muts.order= NULL, patients.order= NULL,   # ******* allows pre-defined orders
                                            
-                                           surval.data= NULL,
+                                           surval.data= NULL, show.survival= FALSE, # currently under development
                                            
-                                           show.response= FALSE, response.order= NULL, show.another.banner=FALSE, banner.name= NULL, show.individuals= FALSE, show.individuals.legend= FALSE, show.survival= FALSE, # ******* user-defined ORDERs
+                                           show.response= FALSE, response.order= NULL, # ******* allows pre-defined orders
+                                        
+                                           show.another.banner=FALSE, banner.name= NULL, 
+                                        
+                                           show.individuals= FALSE, show.individuals.legend= FALSE,  
                                            
-                                           lookup.table= NULL, #******* pass lookup.table 
+                                           lookup.table= NULL, # ******* pass lookup.table 
                                            
                                            show.sample.names = TRUE, show.border= FALSE, show.multis= FALSE, rem.empty= TRUE, # ******* what params to show in legend?
                                            
@@ -14,21 +18,21 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # d
                                            
                                            heatmap.legend.side= "right",
                                            
-                                           mut.legend.title.side= "topleft", # this can only be topleft/topcenter/ etc. otherwise error
+                                           mut.legend.title.side= "topleft", # ******* HINT: this can only be topleft/topcenter/ etc. otherwise error
                                            
-                                           num.rows.heatmap.lgd= NULL, #******* HEATMAP.legend 
+                                           num.rows.heatmap.lgd= NULL, # ******* HEATMAP.legend 
                                            
                                            annot.legend.side= "bottom", 
                                            
                                            annot.title.side= "topleft", # this can only be topleft/topcenter/ etc. otherwise error
                                            
-                                           num.rows.annot.lgd= NULL,  #******* ANNOT.legend 
+                                           num.rows.annot.lgd= NULL,  # ******* ANNOT.legend 
                                            
                                            min.freq= 1, show.title= TRUE, 
                                            
                                            title.str= NULL, 
                                            
-                                           save.path= save.path, #******* title and save path
+                                           save.path= save.path, # ******* title and save path
                                            
                                            save.name= NULL,
                                            
