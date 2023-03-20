@@ -4,7 +4,6 @@ Look at the example file and documentation for an example of how to call the fun
 Simple example: 
 
 source("./generate_complex_oncoprint.R")
-
 ht <-  generate_complex_oncoprint(muts= MUT, 
                                   
                                   show.sample.names = TRUE, show.border= FALSE,
