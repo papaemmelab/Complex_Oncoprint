@@ -46,7 +46,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            axis.side= "left"){
   
-  ## sanity check! main branch
+  ## sanity check! DEV branch
   
   library(randomcoloR)
   library(ComplexHeatmap)
@@ -533,6 +533,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #############################
   
   if ((show.another.banner) | (show.response) | (show.individuals) ) {
+    
+    if (!show.individuals){
+        df$INDIVIDUAL.ID <- NULL
+    }
+    
     source(file.path("./sub_function/prepare_BOTTOM_annotation.R"))
     BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,legend.title.font,legend.label.font,annot.title.side,num.rows.annot.lgd, show.annot.legend, ribbon.size, show.individuals= show.individuals)
     

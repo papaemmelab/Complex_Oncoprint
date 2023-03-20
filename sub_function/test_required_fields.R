@@ -212,6 +212,8 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
       cat(paste("\n**** test_required_fields (5): successfull!\tAll required columns exist in lookup.table... \n"))
     }}
 
+  cat(paste("\n**** Finished... SUCCESSFUL test of all input data fields (test_required_fields). \n"))
+  
   #=========================================================
 
   return(list(muts= muts, svs= svs, cnvs= cnvs, 
