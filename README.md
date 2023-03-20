@@ -9,7 +9,7 @@ Simple example:
 
                                     show.sample.names = TRUE, show.border= FALSE,
 
-                                    min.freq= 1, show.title= TRUE, title.str=  "Example 1 - YOHOOOO I managed to get this with no ERROR!", 
+                                    min.freq= 1, show.title= TRUE, title.str=  "Example 1 - YOHOOOO oncoprint with NO ERROR!", 
 
                                     save.name= "Example_1.A",
 
