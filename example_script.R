@@ -1,5 +1,5 @@
 #==================================================================================
-#   Written by Noushin Farnoud, Jul 2018. Last modified July 2020
+#   Written by Noushin Farnoud, Jul 2018. Last modified July 2023
 #----------------------------------------------------------------------------------
 #   This is an example of how to run Oncoprint-Scripts for a set of mutations/cnvs/svs.
 # 
@@ -24,7 +24,7 @@ library(dplyr)
 # Initialize
 #########################
 
-setwd("/Users/rahnaman/analysisTools/src/tools/R/Oncoprint")
+setwd("/Users/rahnaman/Documents/Oncoprint/")
 
 muts.file <- "./example_data/Mutations.xlsx" # 1st dataframe (Noushin's)
 
@@ -100,7 +100,7 @@ cat(paste("\nFinished Example 1. Now I like to define the order of the response 
 # EXAMPLE 5: How to override default clustering with an input order of patients (cols)? ---- 
 ##############################################################################################
 
-my.pts.order <- c("E-H-131710-T1-1-D1-1", "E-H-131712-T1-1-D1-1", "E-H-131721-T1-1-D1-1", "E-H-131713-T1-1-D1-1", "E-H-131717-T1-1-D1-1", "E-H-131719-T1-1-D1-1",    "E-H-131720-T1-1-D1-1",
+my.pts.order <- c("E-H-131710-T1-1-D1-1", "E-H-131712-T1-1-D1-1", "E-H-131721-T1-1-D1-1", "E-H-131713-T1-1-D1-1", "E-H-131717-T1-1-D1-1", "E-H-131719-T1-1-D1-1", "E-H-131720-T1-1-D1-1",
               "E-H-131714-T1-1-D1-1", "E-H-131711-T1-1-D1-1",  "E-H-131716-T1-1-D1-1","E-H-131715-T1-1-D1-1", "E-H-131718-T1-1-D1-1")
 
 ht.order <-  generate_complex_oncoprint(muts= MUT, 
@@ -248,7 +248,8 @@ ht <-  generate_complex_oncoprint(muts= MUTs, cnvs= cnvs, svs= SVs ,  # define v
                                   axis.side= "left")
 
 
-cat(paste("\nEnd of Tutorial. Try playing with the params and see the difference.\n"))
+cat(paste("============================================================================"))
+cat(paste("\nEnd of Tutorial. Try playing with the params and observe the difference.\n"))
 cat(paste("============================================================================\n"))
 
 

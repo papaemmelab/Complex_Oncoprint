@@ -49,7 +49,7 @@ initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.o
     
     source(file.path("./sub_function/sort_variants.R"))
     
-    B <- sort_variants(svs, svs.order, gene.list , group.label= "SVs", variants.class= "SVs")
+    B <- sort_variants(svs, svs.order, group.label= "SVs", variants.class= "SVs")
     
     data <- rbind(data, B[[1]][,c("TARGET_NAME","GENE","EFFECT")])
     
