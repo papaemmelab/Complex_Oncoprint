@@ -138,7 +138,7 @@ cat(paste("\nFinished USER-defined ORDER example.\n"))
 ###########################################################################
 rm(list=ls()) #clear all vars 
 
-savePath <- "./example_oncoprints/"
+# savePath <- "./example_oncoprints/"
 
 load("./example_data/Example2.RData")
 
@@ -152,7 +152,8 @@ source("./generate_complex_oncoprint.R")
 
 ht <- generate_complex_oncoprint(muts= MUTs, svs= SVs, cnvs=cnvs, min.freq= 1, 
                                  save.name= "Example_2",
-                                 save.path= save.path, title.str= "Example 2 - Mutuations + CNVs + SVs",
+                                 save.path= "./example_oncoprints/", 
+                                 title.str= "Example 2 - Mutuations + CNVs + SVs",
                                  heatmap.legend.side= "bottom", #**change the default location of mutation legend
                                  num.rows.heatmap.lgd= 2, 
                                  mut.legend.title.side = "leftcenter",
@@ -194,7 +195,7 @@ ht <-  generate_complex_oncoprint(muts= MUTs, cnvs= cnvs, svs= SVs ,  # define v
                                   
                                   min.freq= 2, show.title= TRUE, title.str=  "Notice the impact of setting show.multis to TRUE", 
                                   
-                                  save.path= savePath, #******* title and save path
+                                  save.path= "./example_oncoprints/", #******* title and save path
                                   
                                   cols.font= 22, rows.font= 22, pct.font= 22, legend.label.font= 20, 
                                   
@@ -237,7 +238,7 @@ ht <-  generate_complex_oncoprint(muts= MUTs, cnvs= cnvs, svs= SVs ,  # define v
                                   
                                   save.name = "Example_4",
                                   
-                                  save.path= savePath, 
+                                  save.path= "./example_oncoprints/", 
                                   
                                   cols.font= 22, rows.font= 22, pct.font= 22, legend.label.font= 20, legend.title.font= 25, fig.title.font= 22,  barplot.font= 10,  
                                   

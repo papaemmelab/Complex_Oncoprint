@@ -127,7 +127,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   if (!is.null(svs) & !is.data.frame(svs)) {svs = as.data.frame(svs)}
   
   
-  dir.create(file.path(savePath,"TEMP"), showWarnings=FALSE)
+  dir.create(file.path(save.path,"TEMP"), showWarnings=FALSE)
   
   my.params = as.list(match.call(expand.dots=FALSE))
   
@@ -157,7 +157,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ############################################################
   
   source(file.path("./sub_function/initialize_data.R"))
-  Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, REQ.cols, savePath, my.params)
+  Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, REQ.cols, save.path, my.params)
   
   saveFile.1 <-  Init.List$saveFile.1
   saveFile.2 <-  Init.List$saveFile.2
@@ -322,6 +322,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     new.banner.col = BannerList$new.banner.col
     show.annot.legend= BannerList$show.annot.legend
     
+    # list.my.cols$GROUP["Not Available"] <- "#ffffff" # remove later. meant to improve UK-ALL viz
+    # new.banner.col["Not Available"] <- "#ffffff"
+    # 
+    # list.my.cols$GROUP["Hypodiploid"] <- "#fa9fb5" # remove later. meant to improve UK-ALL viz
+    # new.banner.col["Hypodiploid"] <- "#fa9fb5"
+  
   }
   
   ####################################
