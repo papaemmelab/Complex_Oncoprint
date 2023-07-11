@@ -1,7 +1,7 @@
 initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, REQ.cols, save.path, params){
   
   ###############################################
-  save.name = params$save.name
+  save.name = eval(params$save.name)
   
   min.freq <- params$min.freq
   

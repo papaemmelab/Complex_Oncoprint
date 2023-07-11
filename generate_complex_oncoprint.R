@@ -28,7 +28,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            num.rows.annot.lgd= NULL,  # ******* ANNOT.legend 
                                            
-                                           min.freq= 1, show.title= TRUE, 
+                                           min.freq= 1, 
+                                        
+                                           prior.min.Freq= NULL, # For title-ONLY; used when you filter the data in advance but still want to add what you had fileted based on in your title 
+                                        
+                                           show.title= TRUE, 
                                            
                                            title.str= NULL, 
                                            
@@ -46,7 +50,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            axis.side= "left"){
   
-  ## sanity check! DEV branch
+  ## must be main branch
+  
   
   library(randomcoloR)
   library(ComplexHeatmap)
@@ -153,6 +158,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq) 
   
   muts <- as.data.frame(muts)
+  
+  if (nrow(muts)==0){
+    cat(paste("\n You have 0 Mutations to show for this data set with min Freq =",min.freq,"\nreturning NULL"))
+    return(list(ht.obj = NULL, annotation_legend_list= NULL, heatmap_legend_list= NULL,
+                onco.samples= NULL))
+  }
   
   ############################################################
   
@@ -322,12 +333,15 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     new.banner.col = BannerList$new.banner.col
     show.annot.legend= BannerList$show.annot.legend
     
-    # list.my.cols$GROUP["Not Available"] <- "#ffffff" # remove later. meant to improve UK-ALL viz
-    # new.banner.col["Not Available"] <- "#ffffff"
-    # 
-    # list.my.cols$GROUP["Hypodiploid"] <- "#fa9fb5" # remove later. meant to improve UK-ALL viz
-    # new.banner.col["Hypodiploid"] <- "#fa9fb5"
-  
+    list.my.cols$GROUP["Not Available"] <- "#ffffff" # remove later. meant to improve UK-ALL viz
+    new.banner.col["Not Available"] <- "#ffffff"
+
+    list.my.cols$GROUP["Hypodiploid"] <- "#fa9fb5" # remove later. meant to improve UK-ALL viz
+    new.banner.col["Hypodiploid"] <- "#fa9fb5"
+    
+    list.my.cols$NUM.EVIDENCE["5"] <- "#de2d26" # remove later. meant to improve UK-ALL viz
+    new.banner.col["5"] <- "#de2d26"
+
   }
   
   ####################################
@@ -423,8 +437,16 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   cat(paste0("\nSet row/col orders...\n"))
   
+  if (is.null(prior.min.Freq)){
+    cat(paste("\n **** You chose there was NO prior filtering based on Gene Freq, so for the title I am going with min.freq as-called by the func= ", min.freq))
+    Gene.Freq = min.freq
+  } else {
+    cat(paste("\n **** You chose there was a prior filtering (based on Gene Freq), and I am trusting you with your enetered param and directly use it in the title= ", prior.min.Freq))
+    Gene.Freq = prior.min.Freq
+  }
+  
   if (show.title){
-    my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", min.freq ," mutation(s)= ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
+    my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
   } else {
     my.title <- NULL    
   }
