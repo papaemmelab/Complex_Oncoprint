@@ -1,4 +1,4 @@
-define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
+define_ALTER_fun_ASH <-  function(list.ht.colors, multis.dot.size){
   
   alter_fun = list(
     background = function(x, y, w, h) {

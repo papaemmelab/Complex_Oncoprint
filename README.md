@@ -23,3 +23,25 @@ You can install/upgrade using:
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
 BiocManager::install("ComplexHeatmap")
+
+
+Current recognized terms for mutation/CNV/SV types (col EFFECT) are:
+
+ [1] "amp"                          "amplification"                "CN-del"                       "CN-gain"                      "complex"                     
+ [6] "complex_change_in_transcript" "complex_karyotype"            "del"                          "deletion"                     "frame_shift_del"             
+[11] "frame_shift_ins"              "frameshift_del"               "frameshift_indel"             "frameshift_insertion"         "frameshift_variant"          
+[16] "fus"                          "fusion"                       "gain"                         "in_frame_del"                 "in_frame_ins"                
+[21] "inconclusive"                 "inframe_codon_gain"           "inframe_codon_loss"           "inframe_deletion"             "inframe_indel"               
+[26] "inframe_insersion"            "inframe_variant"              "initiator_codon_change"       "inv"                          "inversion"                   
+[31] "karyotypic_abnormal"          "LOH"                          "loss"                         "missense"                     "missense_codon"              
+[36] "missense_mutation"            "N_E"                          "N/A"                          "N/E"                          "non_synonymous_codon"        
+[41] "nonsense_mutation"            "nonstop_mutation"             "normal"                       "normal_karyotype"             "other_cnvs"                  
+[46] "other_snvs"                   "other_svs"                    "rearr"                        "rearrangement"                "rearrangements"              
+[51] "splice_site"                  "splice_site_variant"          "stop_gain"                    "stop_gained"                  "stop_lost"                   
+[56] "stop_retained_variant"        "tandem dup"                   "tandem duplications"          "tandem_duplications"          "trans"                       
+[61] "translation_start_site"       "translocation"                "unavailable"                  "unknown"  
+
+IMPORTANT: 
+
+Please contact rahnaman@mskcc.org if you had any mutation-type that wanted to have a specific representation for it in Oncoprint.
+
