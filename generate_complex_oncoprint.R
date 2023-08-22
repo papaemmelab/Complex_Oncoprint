@@ -167,6 +167,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   ############################################################
   
+  if (!(is.null(svs))){
+    svs <- svs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq) 
+  }
+  
   source(file.path("./sub_function/initialize_data.R"))
   Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, REQ.cols, save.path, my.params)
   
@@ -680,9 +684,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ## Draw simple.ht ====
   ##======================================================
   
-  
-  jpeg(saveFile.2, width=w, height=h, pointsize =14, res = 100)
-  
+    jpeg(saveFile.2, width=w, height=h, pointsize =14, res = 100)
+    
   if (heatmap.legend.side== annot.legend.side){
     draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
          heatmap_legend_list = ht.list)

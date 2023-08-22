@@ -71,7 +71,7 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
                       
                       "inv","inversion",
                       
-                      "tandem duplications","tandem_duplications","tandem dup",
+                      "tandem duplications","tandem_duplications","tandem dup", "tdup",
                       
                       "fusion","fus",
                       
