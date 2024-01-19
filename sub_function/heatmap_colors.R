@@ -3,7 +3,7 @@ heatmap_colors <-  function() {
   library(prettyGraphs)
   
   #==================================================================================
-  #   Written by Noushin Farnoud, Jul 2018, Latest Update June 2020
+  #   Written by Noushin Farnoud, Jul 2018, Latest Update Jan 2024
   #----------------------------------------------------------------------------------
   #   The aim of this function is to use a default color for mutations and indels in 
   #   oncoprint. 
