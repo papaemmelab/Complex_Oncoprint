@@ -7,6 +7,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            show.response= FALSE, response.order= NULL, # ******* allows pre-defined orders
                                         
                                            show.another.banner=FALSE, banner.name= NULL, 
+                                           
+                                           show.ALL= FALSE, ## added specifically for ALL prj. keep it as temp for other adaptations
                                         
                                            show.individuals= FALSE, show.individuals.legend= FALSE,  
                                            
@@ -245,7 +247,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                   "amp",     
                                   "del",  "loh",  "inv",      
                                   "fusion",   
-                                  "trans", "other_svs","tdup","rearr",
+                                  "trans", "other_svs","tdup","dup","rearr",
                                   "add","der",
                                   "other_snvs",
                                   "other_cnvs",
@@ -259,7 +261,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                "Amplification",
                                "Deletion","cnLOH", "Inversion",
                                "Fusion",
-                               "Translocation","Other SVs","Tandem duplication", "Rearrangement",
+                               "Translocation","Other SVs","Tandem duplication", "Duplication","Rearrangement",
                                "Add.","Der.",
                                "Other mutations",
                                "Other CN alterations",
@@ -330,21 +332,57 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   if (show.another.banner){
     
-    source(file.path("./sub_function/add_new_banner.R"))
-    BannerList <- add_new_banner(banner.name, lookup.table, list.my.cols, show.annot.legend)
-    
-    list.my.cols= BannerList$list.my.cols
-    new.banner.col = BannerList$new.banner.col
-    show.annot.legend= BannerList$show.annot.legend
-    
-    list.my.cols$GROUP["Not Available"] <- "#ffffff" # remove later. meant to improve UK-ALL viz
-    new.banner.col["Not Available"] <- "#ffffff"
+    if (show.ALL) {
+      
+      highANY2.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$HIGH_ANY2_TYPE)]
+      
+      list.my.cols$HIGH_ANY2_TYPE <- highANY2.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+      
+     
+      
+      RNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$RNA.SUBTYPE)]
+      
+      list.my.cols$RNA.SUBTYPE <- RNA.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+      
+      
+      
+      DNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$WGS.SV.CNA.SUBTYPE)]
+      
+      list.my.cols$WGS.SV.CNA.SUBTYPE <- DNA.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+      
+      
+      gender.col <- list.ht.colors$GENDER[names(list.ht.colors$GENDER) %in% unique(lookup.table$GENDER)]
+      
+      list.my.cols$GENDER <- gender.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+      
+    } else {
+      source(file.path("./sub_function/add_new_banner.R"))
+      BannerList <- add_new_banner(banner.name, lookup.table, list.my.cols, show.annot.legend)
+      list.my.cols= BannerList$list.my.cols
+      new.banner.col = BannerList$new.banner.col
+      show.annot.legend= BannerList$show.annot.legend
+    }
 
-    list.my.cols$GROUP["Hypodiploid"] <- "#fa9fb5" # remove later. meant to improve UK-ALL viz
-    new.banner.col["Hypodiploid"] <- "#fa9fb5"
-    
-    list.my.cols$NUM.EVIDENCE["5"] <- "#de2d26" # remove later. meant to improve UK-ALL viz
-    new.banner.col["5"] <- "#de2d26"
+    # list.my.cols= BannerList$list.my.cols
+    # new.banner.col = BannerList$new.banner.col
+    # show.annot.legend= BannerList$show.annot.legend
+    # 
+    # list.my.cols$GROUP["Not Available"] <- "#ffffff" # remove later. meant to improve UK-ALL viz
+    # new.banner.col["Not Available"] <- "#ffffff"
+    # 
+    # list.my.cols$GROUP["Hypodiploid"] <- "#fa9fb5" # remove later. meant to improve UK-ALL viz
+    # new.banner.col["Hypodiploid"] <- "#fa9fb5"
+    # 
+    # list.my.cols$NUM.EVIDENCE["5"] <- "#de2d26" # remove later. meant to improve UK-ALL viz
+    # new.banner.col["5"] <- "#de2d26"
 
   }
   
@@ -451,6 +489,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   if (show.title){
     my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
+    # my.title <- paste0(title.str," \n# Alterations= ", data %>% nrow(), "; # Distinct SVs with >= ", Gene.Freq ," alterations = ", svs %>% filter(GENE!="NONE") %>% select(GENE) %>% unique() %>% nrow(),
+    #                    "; # Samples =", length(unique(data$TARGET_NAME)))
+    
   } else {
     my.title <- NULL    
   }

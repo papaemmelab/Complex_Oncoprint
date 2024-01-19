@@ -71,11 +71,11 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
                       
                       "inv","inversion",
                       
-                      "tandem duplications","tandem_duplications","tandem dup", "tdup",
+                      "tandem duplications","tandem_duplications","tandem dup", "tdup", "dup",
                       
                       "fusion","fus",
                       
-                      "translocation","trans", "complex_karyotype", "normal", "normal_karyotype",
+                      "translocation","trans", "tra","complex_karyotype", "normal", "normal_karyotype",
                       
                       "other_svs","other_cnvs","rearr","rearrangements","rearrangement",
                       

@@ -34,7 +34,7 @@ prepare_fill_M <- function(data, SAMPLES, GENES, lookup.table, rem.empty, gene.l
   
   events <- factor(unique(data$EFFECT), levels=c("unknown","other_snvs","missense","splice_site_variant","initiator_codon_change",
                                                  "complex","complex_karyotype","stop_gain","inframe_indel",
-                                                 "frameshift_indel","amp","del","loh","inv","rearr","fusion","trans","tdup","add","der",
+                                                 "frameshift_indel","amp","del","loh","inv","rearr","fusion","trans","tdup","dup","add","der",
                                                  "other_svs","other_cnvs","other","unavailable","normal","karyotypic_abnormal"))
   events <- events[order(events)]
   

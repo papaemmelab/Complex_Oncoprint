@@ -26,8 +26,9 @@ make_uniform_EFFECT_values <-  function(data, valid.effects){
   
   data$EFFECT <- gsub("^inv$|^inversion$", "inv", ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^tandem duplications$|^tandem_duplications$|^tandem dup$","tdup", ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^duplications$|^duplications$|^dup$","dup", ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^fusion$|^fus$","fusion",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^translocation$|^trans$","trans",ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^translocation$|^trans$|^tra$","trans",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^other_svs$","other_svs",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^n/e$|^inconclusive$|^n_e$|^n_a$|^unavailable$|^unavail$","unavailable",ignore.case = TRUE, data$EFFECT)
   data$EFFECT <- gsub("^complex_karyotype$","complex_karyotype",ignore.case = TRUE, data$EFFECT)

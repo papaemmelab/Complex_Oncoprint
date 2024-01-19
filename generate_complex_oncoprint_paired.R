@@ -4,6 +4,8 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
                                 
                                 surval.data= NULL,
                                 
+                                split.cols.by = NULL, 
+                                
                                 show.response= FALSE, response.order= NULL, show.another.banner=FALSE, banner.name= NULL, show.individuals= FALSE, show.individuals.legend= FALSE, show.survival= FALSE, # ******* user-defined ORDERs
                                 
                                 lookup.table= NULL, #******* pass lookup.table 
@@ -118,7 +120,8 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
   
   source(file.path("./sub_function/test_required_fields.R"))
 
-  rename_IDs <- test_required_fields(muts= muts,  svs=svs, cnvs=cnvs, show.another.banner= show.another.banner, banner.name= banner.name, show.response= show.response, show.individuals= show.individuals, lookup.table= lookup.table)
+  rename_IDs <- test_required_fields(muts= muts,  svs=svs, cnvs=cnvs, show.another.banner= show.another.banner, banner.name= banner.name, show.response= show.response, 
+                                     split.cols.by= split.cols.by, show.individuals= show.individuals, lookup.table= lookup.table, annot.title.side= annot.title.side)
   
   muts <- rename_IDs$muts
   cnvs <- rename_IDs$cnvs

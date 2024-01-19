@@ -64,6 +64,9 @@ define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
     tdup =function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list.ht.colors$cyto.colors[["tdup"]][1],  col = NA))
     },
+    dup =function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list.ht.colors$cyto.colors[["dup"]][1],  col = NA))
+    },
     # inconclusive=function(x, y, w, h) { # merged this with unavailable
     #   grid.rect(x, y, w-unit(0.3, "mm"),  h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$cyto.colors[["inconclusive"]][1],  col = NA))
     # },

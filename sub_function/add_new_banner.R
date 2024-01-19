@@ -12,15 +12,46 @@ add_new_banner <- function(banner.name, lookup.table, list.my.cols, show.annot.l
   
   n1 <- length(uniq.grps)
   
-  if (n1 <=6){
+  if (n1 <=15){
     # new.banner.col <- list$nice.cols.A[1:n1]
     # new.banner.col <- c("#C2E0D5","#ECCB80","#BE6698","#D18AB2")[1:n1]
-    new.banner.col <- c("#E15759","#76B7B2","#F28E2B","#FF9DA7","#D18AB2","#808080")[1:n1]
+    # new.banner.col <- c("#E15759","#76B7B2","#F28E2B","#FF9DA7","#D18AB2","#808080")[1:n1]
+    new.banner.col <- c('#b2182b','#d6604d','#f4a582','#fddbc7','#f7f7f7','#d1e5f0','#92c5de','#4393c3','#2166ac',"#E15759","#76B7B2","#F28E2B","#FF9DA7","#D18AB2","#808080")[1:n1]
   } else {
     new.banner.col <-  distinctColorPalette(n1)
   } 
   
   names(new.banner.col) <- uniq.grps
+  
+  #===============================================
+  # == unify some of the colors for common cases
+  #===============================================
+  hcl.pals(type = "divergingx")
+  A <- hcl.colors(9, palette = "Zissou1", alpha = 0.7, rev = FALSE, fixup = TRUE)
+  
+  
+  ix <- toupper(names(new.banner.col)) %in% toupper(c("N/A", "NA", "FAILED", "FAIL", "NOTAVAILABLE", "NOT.AVAILABLE", "MISSING"))
+  new.banner.col[which(ix)] <- ifelse(length(ix)>0, "#252525", new.banner.col[which(ix)])
+  rm(ix)
+  
+  ix <- toupper(names(new.banner.col)) %in% toupper(c("NOISE","NOISY","VERY NOISY","NOISY.UNUSABLE","Unusable.noise","high.noise"))
+  new.banner.col[which(ix)] <- ifelse(length(ix)>0, "#9e9ac8", new.banner.col[which(ix)])
+  rm(ix)
+  
+  ix <- toupper(names(new.banner.col)) %in% toupper(c("USABLE.NOISE","Noisy.usable"))
+  new.banner.col[which(ix)] <- ifelse(length(ix)>0, "#dadaeb", new.banner.col[which(ix)])
+  rm(ix)
+
+  ix <- toupper(names(new.banner.col)) %in% toupper(c("NORMAL"))
+  new.banner.col[which(ix)] <- ifelse(length(ix)>0, "#4393c3", new.banner.col[which(ix)])
+  rm(ix)
+  
+  ix <- toupper(names(new.banner.col)) %in% toupper(c("other"))
+  new.banner.col[which(ix)] <- ifelse(length(ix)>0, A[4], new.banner.col[which(ix)])
+  rm(ix)
+  
+  #===============================================
+  
   list.my.cols$new.banner.col <- new.banner.col
   
   show.annot.legend <- c(show.annot.legend, "TRUE")
@@ -60,10 +91,13 @@ add_new_banner <- function(banner.name, lookup.table, list.my.cols, show.annot.l
   
   for (m in c("NR","N/R","No Response","No response")) new.banner.col[[m]] <- "#DA2310" 
   
+  ix <- toupper(names(new.banner.col)) %in% toupper(c("NO"))
+  new.banner.col[which(ix)] <- ifelse(length(ix)>0, "#C1DAD6", new.banner.col[which(ix)])
+  rm(ix)
   
-  
-  for (m in c("no","No","NO")) new.banner.col[[m]] <- "#C1DAD6"
-  for (m in c("yes","Yes","YES")) new.banner.col[[m]] <- "#FC968B"
+  ix <- toupper(names(new.banner.col)) %in% toupper(c("YES"))
+  new.banner.col[which(ix)] <- ifelse(length(ix)>0, "#FC968B", new.banner.col[which(ix)])
+  rm(ix)
   
   #----------------------------------------------------
   # Assign universal colors to most common platforms
