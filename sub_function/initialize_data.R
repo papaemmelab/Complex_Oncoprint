@@ -47,6 +47,10 @@ initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.o
   
   if (!is.null(svs)){
     
+    if (nrow(svs)==0){
+      stop("\n Size of svs = 0. This may be due to the fact that you currently do not have any svs with the min.freq your specified. Try re-defining the 'min.freq.svs' param...\n")
+    }
+    
     source(file.path("./sub_function/sort_variants.R"))
     
     B <- sort_variants(svs, svs.order, group.label= "SVs", variants.class= "SVs")
@@ -62,6 +66,10 @@ initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.o
   ##############################################################
   
   if (!is.null(cnvs)){
+    
+    if (nrow(cnvs)==0){
+      stop("\n Size of cnvs = 0. This may be due to the fact that you currently do not have any CNV with the min.freq your specified.\nby default min.freq will be applied to mutations as well as CNVs/SVs. Try re-defining svs-specific 'min.freq.svs' param...\n")
+    }
     
     source(file.path("./sub_function/sort_variants.R"))
     

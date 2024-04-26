@@ -30,7 +30,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            num.rows.annot.lgd= NULL,  # ******* ANNOT.legend 
                                            
-                                           min.freq= 1, 
+                                           min.freq= 1,
                                         
                                            prior.min.Freq= NULL, # For title-ONLY; used when you filter the data in advance but still want to add what you had fileted based on in your title 
                                         
@@ -38,7 +38,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            title.str= NULL, 
                                            
-                                           save.path= save.path, # ******* title and save path
+                                           save.path= NULL, # ******* title and save path
                                            
                                            save.name= NULL,
                                            
@@ -133,6 +133,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   if (!is.null(cnvs) & !is.data.frame(cnvs)) {cnvs = as.data.frame(cnvs)}
   if (!is.null(svs) & !is.data.frame(svs)) {svs = as.data.frame(svs)}
   
+  if (is.null(save.path)){
+    save.path <- getwd()
+    cat(paste0("\n ***** NOTE: You did not pass 'save.path' param when calling the function. The default path used to save the generated oncoprints is --> ", save.path,"\n\n"))
+  }
   
   dir.create(file.path(save.path,"TEMP"), showWarnings=FALSE)
   
@@ -168,10 +172,40 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   }
   
   ############################################################
-  
+  # Filter svs and cnvs based on min.freq
+  ############################################################
+  # SVs ---
+  #=====================
   if (!(is.null(svs))){
-    svs <- svs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq) 
+    
+    svs.test <- svs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq >= min.freq) 
+  
+    if (nrow(svs.test)==0){
+      cat(paste0("\n >>>>>>>  There are no SVs with min.freq you specified; So, plotting svs with at least 1 hit instead..."))
+      svs <- svs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= 1) 
+    } else {svs <- svs.test}
+  
+  rm(svs.test)
+  
   }
+  
+  # CNVs ---
+  #=====================
+  if (!(is.null(cnvs))){
+    
+    cnvs.test <- cnvs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq >= min.freq) 
+  
+    if (nrow(cnvs.test)==0){
+      cat(paste0("\n >>>>>>> There are no CNVs with min.freq you specified; So, plotting cnvs with at least 1 hit instead..."))
+      cnvs <- cnvs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq >= 1) 
+    } else {cnvs <- cnvs.test}
+    
+    rm(cnvs.test)
+  }
+  
+  ##########################################
+  # Prepare data for complex heatmap  ====
+  ##########################################
   
   source(file.path("./sub_function/initialize_data.R"))
   Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, REQ.cols, save.path, my.params)

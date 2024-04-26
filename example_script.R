@@ -167,6 +167,8 @@ ht <- generate_complex_oncoprint(muts= MUTs, svs= SVs, cnvs=cnvs, min.freq= 1,
 # this saved the jpg version of the heatmap at the specified location; 
 # you can load the heatmap and save the pdf ver using ht$ht.obj
 
+cat(paste("\nFinished an example with default MUTs plus CNVs and SVs.\n"))
+
 cat(paste("================================\n\n"))
 
 ###################################################
@@ -180,7 +182,7 @@ source("./generate_complex_oncoprint.R")
 ht <-  generate_complex_oncoprint(muts= MUTs, cnvs= cnvs, svs= SVs ,  # define variants DFs
                                   
                                   save.name= "Example_3",
-                                        
+                                  
                                   cnvs.order= NULL, svs.order= NULL, muts.order= NULL, patients.order= NULL,   # define pre-set orders (if needed to)
                                   
                                   show.response= TRUE, response.order= NULL,  ## ***** show RESPONSE 
