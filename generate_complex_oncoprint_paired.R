@@ -129,6 +129,27 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
   lookup.table <- rename_IDs$lookup.table
   REQ.cols <- rename_IDs$required.cols.lookup
   
+  ############################################################
+  # Check if the order name and MUT ids are consistent ====
+  ############################################################
+  
+  if (!is.null(patients.order)){
+   if (!all((patients.order) %in% MUT$TARGET_NAME )){
+     stop("\nPatients order (TARGET NAME) is inconsistent with MUT-TARGET NAME")
+   }
+  }
+  
+  if (!is.null(patients.order) & !is.null(CNV)){
+    if (!all((patients.order) %in% MUT$TARGET_NAME )){
+      stop("\nPatients order (TARGET NAME) is inconsistent with CNV-TARGET NAME")
+    }
+  }
+
+  if (!is.null(lookup.table)){
+    if (!all( MUT$TARGET_NAME %in% lookup.table$TARGET_NAME )){
+      stop("\nSome Mutation TARGET NAMEs are not defined in lookup table.")
+    }
+  }
   ###############################################
   # Create FONT.obj for calling simple.ht  ====
   ###############################################

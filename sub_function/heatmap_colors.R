@@ -52,7 +52,7 @@ heatmap_colors <-  function() {
     "other_svs"= "#c51b8a", # OTHER_SVs
     "other_cnvs"= "#fa9fb5",# OTHER_CNVs
     "fusion"= "#fdbf6f",    # FUSION
-    "NA"= "grey",           # N/E or inconclusive
+    "N/A"= "grey",           # N/E or inconclusive
     "add"= '#fdae61',       # ADD
     "der"= '#fee08b',       # DER
     "normal"= '#a8ddb5'     # Normal_Karyotype
@@ -107,7 +107,7 @@ heatmap_colors <-  function() {
                       "Inevaluable"= "#d9d9d9", 
                       "#N/E"="#d9d9d9") #N/E
   
-  therapy.colors <- unlist(subtype_colors)
+  therapy.colors <- unlist(therapy.colors)
   
   ###############################
   # == Nice.cols

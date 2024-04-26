@@ -23,6 +23,7 @@ draw_basic_oncoprint <-  function(M, EFFECT, alter_fun,
   
   h1 <- top_annotation
   
+  
   simple.ht <- oncoPrint(M, get_type = function(x) strsplit(x, ";")[[1]],
                          
                          alter_fun = alter_fun, col = append(list.colors$mut.colors, list.colors$cyto.colors),
