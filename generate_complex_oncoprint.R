@@ -1,7 +1,11 @@
 generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # ******* define variants DFs [mut is required]
                                            
                                            cnvs.order= NULL, svs.order= NULL, muts.order= NULL, patients.order= NULL,   # ******* allows pre-defined orders
-                                           
+                                        
+                                           sec.1.label = "MUT",
+                                           sec.2.label = "CNVs",
+                                           sec.3.label = "SVs", 
+                                        
                                            surval.data= NULL, show.survival= FALSE, # currently under development
                                            
                                            show.response= FALSE, response.order= NULL, # ******* allows pre-defined orders
@@ -32,9 +36,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            min.freq= 1,
                                         
-                                           prior.min.Freq= NULL, # For title-ONLY; used when you filter the data in advance but still want to add what you had fileted based on in your title 
-                                        
                                            show.title= TRUE, 
+                                        
+                                           show.min.freq = TRUE,
                                            
                                            title.str= NULL, 
                                            
@@ -42,13 +46,13 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            save.name= NULL,
                                            
-                                           cols.font= 18, rows.font= 18, pct.font= 16, 
-                                           legend.label.font= 10, legend.title.font= 14, 
-                                           fig.title.font= 18,  barplot.font= 10,  
+                                           cols.font= 25, rows.font= 25, pct.font= 20, 
+                                           legend.label.font= 20, legend.title.font= 25, 
+                                           fig.title.font= 28,  barplot.font= 25,  
                                            
                                            multis.dot.size = 0.8, #****FONTs: row.groupname.font is the same as rows.font
                                            
-                                           right.w= 13, top.w= 8 , ribbon.size= 2, w=3200, h=1800,  #**** Sizes of barplots and fig 
+                                           right.w= 13, top.w= 8 , ribbon.size= 1, w=40, h=20,  #**** Sizes of barplots and fig 
                                            
                                            axis.side= "left"){
   
@@ -106,7 +110,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #   min.freq                            Only applicable for MUTATIONs data: only show GENEs that have >= min.freq mutations [default = 1] 
   #   show.title [default= TRUE]          Display the figure title. By default this option is set on and if no added title string is (next option) is defined the figure will have a title that reports the total # variants and samples
   #   title.str                           The optional title of the figure, By default this will be followed by the total number of variants in the dataset and number of samples/patients
-  #   save.path                           The directory of the output oncoplot : by default the name of the plot is hardcoded as : save.path/"Heatmap_minFreq_",min.freq,".jpg"
+  #   save.path                           The directory of the output oncoplot : by default the name of the plot is hardcoded as : save.path/"Heatmap_minFreq_",min.freq,".tiff"
   # === Control Font size ====
   #==============================================
   #   cols.font                           Sample names font size (i.e., columns) [default = 18]
@@ -206,9 +210,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ##########################################
   # Prepare data for complex heatmap  ====
   ##########################################
-  
+
   source(file.path("./sub_function/initialize_data.R"))
-  Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, REQ.cols, save.path, my.params)
+  Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, 
+                               sec.1.label=  sec.1.label , sec.2.label= sec.2.label, sec.3.label= sec.3.label , 
+                               lookup.table, REQ.cols, save.path, my.params)
   
   saveFile.1 <-  Init.List$saveFile.1
   saveFile.2 <-  Init.List$saveFile.2
@@ -273,29 +279,35 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # == Define Labels for MUT/CNV/... segments  =====
   ##############################################################
   
-  EFFECT.all <- list(variants = c("missense","stop_gain","frameshift_indel",
-                                  "inframe_indel","splice_site_variant",
+  EFFECT.all <- list(variants = c("missense","stop_gain","frameshift_indel", "frameshift",
+                                  "inframe_indel","inframe","splice_site_variant", "splicing",
                                   "initiator_codon_change",
+                                  "biallelic",
                                   "complex",
                                   "unknown",  "complex_karyotype",
-                                  "amp",     
-                                  "del",  "loh",  "inv",      
-                                  "fusion",   
+                                  "amp", "cngain",    
+                                  "del", "cnloss",
+                                  "loh",  "cnloh",
+                                  "inv",      
+                                  "fusion", "TRA",  
                                   "trans", "other_svs","tdup","dup","rearr",
                                   "add","der",
                                   "other_snvs",
                                   "other_cnvs",
                                   "multi_hit","unavailable","normal","karyotypic_abnormal"), 
                      
-                     labels= c("Missense","Stop-gain","Frameshift indel",
-                               "Inframe indel","Splicing variant",
+                     labels= c("Missense","Stop-gain","Frameshift indel", "Frameshift",
+                               "Inframe indel","Inframe","Splicing variant","Splicing",
                                "Initiator_codon change",
+                               "Biallelic",
                                "Complex", 
                                "Unknown", "Complex karyotype",  
-                               "Amplification",
-                               "Deletion","cnLOH", "Inversion",
-                               "Fusion",
-                               "Translocation","Other SVs","Tandem duplication", "Duplication","Rearrangement",
+                               "Amplification", "cnGain",    
+                               "Deletion", "cnLoss",
+                               "cnLOH", "cnLOH",
+                               "Inversion",
+                               "Fusion", "TRA",
+                               "TRA","Other SVs","Tandem duplication", "Duplication","Rearrangement",
                                "Add.","Der.",
                                "Other mutations",
                                "Other CN alterations",
@@ -306,7 +318,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   )
   
   
-  LABS <- factor(gene.list$LAB, levels=c("Substitusions/Indels","Cytogenetics","CNVs", "SVs"))
+  # LABS <- factor(gene.list$LAB, levels=c("Substitusions/Indels","Cytogenetics","CNVs", "SVs"))
+  
+  #  LABS <- factor(gene.list$LAB, levels=c("SNVs/INDELs","CNV", "FUS/INV"))
+  
+  LABS <- factor(gene.list$LAB, levels=c(sec.1.label, sec.2.label, sec.3.label))
   
   #################################
   # == Top-annotation (1)  ====
@@ -376,17 +392,17 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
       
      
       
-      RNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$RNA.SUBTYPE)]
+      RNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$RNA_SUBTYPE)]
       
-      list.my.cols$RNA.SUBTYPE <- RNA.col
+      list.my.cols$RNA_SUBTYPE <- RNA.col
       
       show.annot.legend <- c(show.annot.legend, "TRUE")
       
       
       
-      DNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$WGS.SV.CNA.SUBTYPE)]
+      DNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$DNA_SUBTYPE)]
       
-      list.my.cols$WGS.SV.CNA.SUBTYPE <- DNA.col
+      list.my.cols$DNA_SUBTYPE <- DNA.col
       
       show.annot.legend <- c(show.annot.legend, "TRUE")
       
@@ -397,6 +413,26 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
       
       show.annot.legend <- c(show.annot.legend, "TRUE")
       
+      
+      fin.subtype.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$FINAL_SUBTYPE)]
+      
+      list.my.cols$FINAL_SUBTYPE <- fin.subtype.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+      
+      
+      soc.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$SOC_SUBTYPE)]
+      
+      list.my.cols$SOC_SUBTYPE <- soc.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+      
+      extended.diag.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$EXTENDED_DIAGNOSTIC_SUBTYPE)]
+      
+      list.my.cols$EXTENDED_DIAGNOSTIC_SUBTYPE <- extended.diag.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+
     } else {
       source(file.path("./sub_function/add_new_banner.R"))
       BannerList <- add_new_banner(banner.name, lookup.table, list.my.cols, show.annot.legend)
@@ -404,19 +440,6 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
       new.banner.col = BannerList$new.banner.col
       show.annot.legend= BannerList$show.annot.legend
     }
-
-    # list.my.cols= BannerList$list.my.cols
-    # new.banner.col = BannerList$new.banner.col
-    # show.annot.legend= BannerList$show.annot.legend
-    # 
-    # list.my.cols$GROUP["Not Available"] <- "#ffffff" # remove later. meant to improve UK-ALL viz
-    # new.banner.col["Not Available"] <- "#ffffff"
-    # 
-    # list.my.cols$GROUP["Hypodiploid"] <- "#fa9fb5" # remove later. meant to improve UK-ALL viz
-    # new.banner.col["Hypodiploid"] <- "#fa9fb5"
-    # 
-    # list.my.cols$NUM.EVIDENCE["5"] <- "#de2d26" # remove later. meant to improve UK-ALL viz
-    # new.banner.col["5"] <- "#de2d26"
 
   }
   
@@ -513,19 +536,16 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   cat(paste0("\nSet row/col orders...\n"))
   
-  if (is.null(prior.min.Freq)){
-    cat(paste("\n **** You chose there was NO prior filtering based on Gene Freq, so for the title I am going with min.freq as-called by the func= ", min.freq))
-    Gene.Freq = min.freq
-  } else {
-    cat(paste("\n **** You chose there was a prior filtering (based on Gene Freq), and I am trusting you with your enetered param and directly use it in the title= ", prior.min.Freq))
-    Gene.Freq = prior.min.Freq
-  }
+  cat(paste("\n **** You chose min.freq to filter all events = ", min.freq))
+  Gene.Freq = min.freq
+
   
   if (show.title){
-    my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
-    # my.title <- paste0(title.str," \n# Alterations= ", data %>% nrow(), "; # Distinct SVs with >= ", Gene.Freq ," alterations = ", svs %>% filter(GENE!="NONE") %>% select(GENE) %>% unique() %>% nrow(),
-    #                    "; # Samples =", length(unique(data$TARGET_NAME)))
-    
+    if (show.min.freq){
+      my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
+    } else{
+      my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Top Genes = ",length(unique(muts$GENE)),"; # Samples (Top Category) =", ncol(M))
+    }
   } else {
     my.title <- NULL    
   }
@@ -749,24 +769,28 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                               title_position = mut.legend.title.side,
                                               # title_position= "topleft",
                                               labels_gp = gpar(fontsize = legend.label.font),
-                                              grid_height= unit(1, "cm"), # size of the mutation legend color-boxes
+                                              grid_height= unit(0.5, "cm"), # size of the mutation legend color-boxes
                                               nrow=num.rows.heatmap.lgd,
-                                              grid_width= unit(1, "cm"),
-                                              legend_height = unit(20, "cm"))
+                                              grid_width= unit(0.5, "cm"),
+                                              legend_height = unit(10, "cm"))
   ) 
   
   ##======================================================
   ## Draw simple.ht ====
   ##======================================================
+
+      # png(saveFile.2,width=3.25,height=3.25,units="in",res=100)
   
-    jpeg(saveFile.2, width=w, height=h, pointsize =14, res = 100)
+  # tiff(saveFile.2, units="in", width=w, height=h, res=600)
+
+  png(saveFile.2, units="in", width=w, height=h, res=600)
     
   if (heatmap.legend.side== annot.legend.side){
-    draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
-         heatmap_legend_list = ht.list)
+    suppressMessages(draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
+         heatmap_legend_list = ht.list))
   } else {
-    draw(ht, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
-         heatmap_legend_list = ht.list)
+    suppressMessages(draw(ht, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
+         heatmap_legend_list = ht.list))
   }
   
   dev.off()

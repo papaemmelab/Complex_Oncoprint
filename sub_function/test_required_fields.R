@@ -80,7 +80,23 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
                       "other_svs","other_cnvs","rearr","rearrangements","rearrangement",
                       
                       "N/E", "inconclusive","unavailable","N_E","N/A",
-                      "karyotypic_abnormal"
+                      "karyotypic_abnormal",
+                      
+                      "CNLOH",
+                      "GAIN",
+                      "LOSS",
+                      "deep_LOSS",
+                      "cnloh",
+                      "cngain",
+                      "splicing",
+                      "cnloss",
+                      "truncating",
+                      "inframe",
+                      "frameshift",
+                      "multi_hit_mut",
+                      "multi_hit",
+                      "biallelic",
+                      "multi_hit_mut_cnv"
   )
                       
   # stop_lost, splice_site_variant, stop_retained_variant, initiator_codon_change can be from both indels or subs in VEP
