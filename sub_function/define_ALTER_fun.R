@@ -49,8 +49,8 @@ define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
     complex_karyotype = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["complex_karyotype"]][1], col = NA))
     },
-    multi_hit = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["multi_hit"]][1], col = NA))
+    multi_muts = function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["multi_muts"]][1], col = NA))
     },
     complex = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["complex"]][1], col = NA))
@@ -61,14 +61,14 @@ define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
     amp = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["amp"]][1], col = NA))
     },
-    cngain = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["cngain"]][1], col = NA))
+    gain = function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["gain"]][1], col = NA))
     },
     del = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["del"]][1], col = NA))
     },
-    cnloss = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["cnloss"]][1], col = NA))
+    loss = function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["loss"]][1], col = NA))
     },
     loh = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["loh"]][1], col = NA))
@@ -86,7 +86,9 @@ define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
     #   grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list.ht.colors$mut.colors[["trans"]][1],  col = NA))
     # },
     trans =function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list.ht.colors$mut.colors[["trans"]][1],  col = NA))
+      # grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list.ht.colors$mut.colors[["trans"]][1],  col = NA))
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["trans"]][1]  , col = NA))
+      
     },
     rearr =function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list.ht.colors$mut.colors[["rearr"]][1],  col = NA)) # coloring rearrangement as trans.
@@ -120,6 +122,25 @@ define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
     },
     karyotypic_abnormal = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = "salmon"  , col = NA))
+    },
+    # multi_hit = function(x, y, w, h) {
+    #   grid.points(x, y, pch = 21, size = unit(multis.dot.size, "cm"), gp = gpar(col = "black", fill= "#FAEFD1"))
+    # },
+    multi_hit = function(x, y, w, h) {
+      # Draw a colored box as background
+      grid.rect(
+        x = x, y = y,
+        w-unit(0.52, "mm"), h-unit(0.52, "mm"),
+        gp = gpar(fill = "#e2a0e8", col = NA) #RD[10]
+      )
+      
+      # Overlay the point on top of the colored box
+      grid.points(
+        x, y,
+        pch = 21,
+        size = unit(multis.dot.size, "cm"),
+        gp = gpar(col = "black", fill = "#FAEFD1")
+      )
     }
   )
 

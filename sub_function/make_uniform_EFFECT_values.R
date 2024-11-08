@@ -26,19 +26,19 @@ make_uniform_EFFECT_values <-  function(data, valid.effects){
   
   # data$EFFECT <- gsub("^frameshift_insersion$|^frameshift_ins$","frameshift_insersion",ignore.case = TRUE, data$EFFECT) # recently added
   
-  # data$EFFECT <- gsub("^amp$|^amplification$|^gain$|^cn-gain$|^cngain","amp", ignore.case = TRUE,  data$EFFECT)
-  data$EFFECT <- gsub("^amp$|^amplification$|^gain$|^cn-gain$|^cngain","cnGain", ignore.case = TRUE,  data$EFFECT)
+  # data$EFFECT <- gsub("^amp$|^amplification$|^gain$|^cn-gain$","amp", ignore.case = TRUE,  data$EFFECT)
+  data$EFFECT <- gsub("^amp$|^amplification$|^gain$|^cn-gain$","gain", ignore.case = TRUE,  data$EFFECT)
   
   data$EFFECT <- gsub("^biallelic","biallelic", ignore.case = TRUE,  data$EFFECT)
   
   data$EFFECT <- gsub("^Multi_hit_MUT_CNV$|^Multi_hit_MUT$","Multi_hit", ignore.case = TRUE,  data$EFFECT)
   
-  
-  
+  data$EFFECT <- gsub("^multi_muts$","multi_muts", ignore.case = TRUE,  data$EFFECT)
+
   # data$EFFECT <- gsub("^del$|^deletion$|^loss$|^CN-del$|^cndel$", "del", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^del$|^deletion$|^loss$|^CN-del$|^cndel$", "cnLoss", ignore.case = TRUE, data$EFFECT)
+  data$EFFECT <- gsub("^del$|^deletion$|^loss$|^CN-del$|^cndel$", "loss", ignore.case = TRUE, data$EFFECT)
   
-  data$EFFECT <- gsub("^LOH$","loh", ignore.case = TRUE,  data$EFFECT)
+  data$EFFECT <- gsub("^LOH$|^cnloh","cnloh", ignore.case = TRUE,  data$EFFECT)
   data$EFFECT <- gsub("^unknown$","unknown",ignore.case = TRUE, data$EFFECT)
   
   data$EFFECT <- gsub("^rearrangement$|^rear$|^rearr$", "rearr", ignore.case = TRUE, data$EFFECT)

@@ -35,6 +35,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            num.rows.annot.lgd= NULL,  # ******* ANNOT.legend 
                                            
                                            min.freq= 1,
+                                           
+                                           include.these.events= NULL,
                                         
                                            show.title= TRUE, 
                                         
@@ -161,11 +163,18 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   lookup.table <- rename_IDs$lookup.table
   REQ.cols <- rename_IDs$required.cols.lookup
   
+  # cols.font <- as.numeric(cols.font)
+  
   ############################################################
   # == Find a subset of Mutations that have >= min.freq variants
   ############################################################
   
-  muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq) 
+  if (!is.null(include.these.events)) {
+    muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq | GENE %in% include.these.events) 
+  } else {
+    muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq) 
+  }
+  
   
   muts <- as.data.frame(muts)
   
@@ -212,7 +221,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ##########################################
 
   source(file.path("./sub_function/initialize_data.R"))
-  Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, 
+  Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, min.freq,
                                sec.1.label=  sec.1.label , sec.2.label= sec.2.label, sec.3.label= sec.3.label , 
                                lookup.table, REQ.cols, save.path, my.params)
   
@@ -283,35 +292,35 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                   "inframe_indel","inframe","splice_site_variant", "splicing",
                                   "initiator_codon_change",
                                   "biallelic",
-                                  "complex",
-                                  "unknown",  "complex_karyotype",
-                                  "amp", "cngain",    
-                                  "del", "cnloss",
+                                  "complex", "complex_karyotype", "truncating",
+                                  "unknown", 
+                                  "amp", "gain",    
+                                  "del", "loss",
                                   "loh",  "cnloh",
-                                  "inv",      
+                                  "inv",   "INV",   
                                   "fusion", "TRA",  
                                   "trans", "other_svs","tdup","dup","rearr",
                                   "add","der",
                                   "other_snvs",
                                   "other_cnvs",
-                                  "multi_hit","unavailable","normal","karyotypic_abnormal"), 
+                                  "unavailable","normal","karyotypic_abnormal"), 
                      
-                     labels= c("Missense","Stop-gain","Frameshift indel", "Frameshift",
-                               "Inframe indel","Inframe","Splicing variant","Splicing",
+                     labels= c("missense","stop_gain","frameshift_indel", "frameshift",
+                               "Inframe indel","Inframe","Splicing variant","splicing",
                                "Initiator_codon change",
-                               "Biallelic",
-                               "Complex", 
-                               "Unknown", "Complex karyotype",  
-                               "Amplification", "cnGain",    
-                               "Deletion", "cnLoss",
+                               "biallelic",
+                               "complex", "Complex karyotype", "truncating",
+                               "Unknown",   
+                               "Amplification", "GAIN",    
+                               "Deletion", "LOSS",
                                "cnLOH", "cnLOH",
-                               "Inversion",
-                               "Fusion", "TRA",
+                               "Inversion", "INV",
+                               "FUS", "TRA",
                                "TRA","Other SVs","Tandem duplication", "Duplication","Rearrangement",
                                "Add.","Der.",
                                "Other mutations",
                                "Other CN alterations",
-                               "Multiple variants","Unavailable","Normal","Karyotypic abnormal"))
+                               "Unavailable","Normal","Karyotypic abnormal"))
   
   EFFECT <- list (variants = EFFECT.all[[1]][EFFECT.all[[1]] %in% data$EFFECT],
                   labels = EFFECT.all[[2]][EFFECT.all[[1]] %in% data$EFFECT]
@@ -410,6 +419,13 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
       gender.col <- list.ht.colors$GENDER[names(list.ht.colors$GENDER) %in% unique(lookup.table$GENDER)]
       
       list.my.cols$GENDER <- gender.col
+      
+      show.annot.legend <- c(show.annot.legend, "TRUE")
+      
+      
+      purity.col <- list.ht.colors$PURITY[names(list.ht.colors$PURITY) %in% unique(lookup.table$PURITY)]
+      
+      list.my.cols$PURITY <- purity.col
       
       show.annot.legend <- c(show.annot.legend, "TRUE")
       
@@ -556,23 +572,17 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     column_order= as.character(patients.order)
   }
   
-  if (!is.null(muts.order) & !is.null(cnvs) & is.null(cnvs.order)){ # is we have cnvs and also decided to pass cnvs.order
-    cnvs.order <- as.character(unique(cnvs$GENE))
-  }
   
-  if (!is.null(muts.order) & !is.null(svs) & is.null(svs.order)){ # is we have cnvs and also decided to pass cnvs.order
-    svs.order <- as.character(unique(cnvs$GENE))
-  }
+  # Set default orders from dataframes if specific orders are not provided
+  muts.order.new <- if (is.null(muts.order)) as.character(unique(muts$GENE)) else muts.order
+  cnvs.order.new <- if (is.null(cnvs.order)) as.character(unique(cnvs$GENE)) else cnvs.order
+  svs.order.new <- if (is.null(svs.order)) as.character(unique(svs$GENE)) else svs.order
   
-  if (is.null(muts.order) & is.null(cnvs.order) & is.null(svs.order)){
-    row_order = NULL
-    
+  # Create row_order based on provided and default orders
+  row_order <- if (is.null(muts.order) && is.null(svs.order) && is.null(cnvs.order)) {
+    NULL
   } else {
-    
-    if (is.null(cnvs)) {cnvs.order= NULL} # in case you choose to set CNVs= NULL but forget to set the cnvs.order= NULL
-    if (is.null(svs)) {svs.order= NULL}
-    
-    row_order= c(muts.order,cnvs.order,svs.order)
+    c(muts.order.new, cnvs.order.new, svs.order.new)
   }
   
   ###############################################################
@@ -801,6 +811,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     final.sample_order = NULL
   } else {
     final.sample_order <- colnames(M)[column_order(ht)]
+    final.row_order <- rownames(M)
   }
   
   
@@ -825,6 +836,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   cat(paste("\n\nThe file is saved at",saveFile.2,"\n"))
   
   return(list(ht.obj = ht, annotation_legend_list= lgd_list, heatmap_legend_list= ht.list,
-              onco.samples= final.sample_order))
+              onco.samples= final.sample_order,
+              onco.genes= final.row_order,
+              Fig.Path = saveFile.2))
   
 }

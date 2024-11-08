@@ -27,7 +27,8 @@ heatmap_colors <-  function() {
   HK1 <- met.brewer("Hokusai1", type = "discrete") 
   HK3 <- met.brewer("Hokusai3", type = "discrete") 
   DeR <- met.brewer("Derain", type = "discrete")
-  
+  TP <- met.brewer("Tiepolo", type = "discrete")
+  LK <- met.brewer("Lakota", type = "discrete")
   #############################################
   # == Define Default Mutation colors ----
   ##############################################
@@ -49,12 +50,15 @@ heatmap_colors <-  function() {
   #############################################
   # == Define Mutation colors ----
   ##############################################
-  mut.colors <-  list( "biallelic"= RD[8],
+  mut.colors <-  list( "biallelic"= DM[1],
+                       "Biallelic"= DM[1],
                        
+                       "complex_change_in_transcript"= RD[5],
+                       "complex"= RD[5],
                        
-                       "complex_change_in_transcript"= HK1[4],
-                       "complex"= HK1[4],
-                       
+                       # "complex_change_in_transcript"= MN[3],
+                       # "complex"= MN[3],
+
                        "missense" = MN[3],
                        
                        "initiator_codon_change"= RD[4],
@@ -78,14 +82,36 @@ heatmap_colors <-  function() {
                        "inframe"= MN[4],
                        
                        "multi_hit" = RD[9],
+                       # "multi_hit" ="black",
                        
-                       "cnloss" = RD[6],
-                       "cngain" = HK3[4],
+                       "multi_muts"= RD[10],
+                       "multi_muts"= RD[10],
+                       
+                       "loss" = RD[12],
+                       "Loss" = RD[12],
+                       "LOSS" = RD[12],
+                       
+                       
+                       "gain" = RD[1],
+                       "Gain" = RD[1],
+                       "GAIN" = RD[1],
+                       
                        "loh" = RD[11],
+                       "cnLOH"=  RD[11],
+                       "cnloh"=  RD[11],
                        
-                       "trans"= RD[4],
+                       "trans"= RD[3],
+                       "TRA"= RD[3],
                        
-                       "fusion"= RD[5]
+                       "INV"= FH[5],
+                       "inv"= FH[5],
+                       
+                       
+                       "fusion"= RD[4],
+                       "FUS"= RD[4],
+                       
+                       "SNV" = RD[4],
+                       "INDEL"= RD[2]
   )
   
   # mut.colors <- list("missense"= "#3182bd",
@@ -152,8 +178,6 @@ heatmap_colors <-  function() {
   #                    "Multi_hit_MUT" = HK1[3],
   #                    "multi_hit" = RD[9],
   #                    
-  #                    "cnloss" = RD[10],
-  #                    "cngain" = RD[12],
   #                    "cnloh" = RD[11],
   #                    
   #                    "TRA"= RD[3],
@@ -161,7 +185,13 @@ heatmap_colors <-  function() {
   
   mut.colors <- unlist(mut.colors)
   
-  mut.colors <- add.alpha(mut.colors, alpha = 0.6)
+  # Define specific names to exclude from alpha modification
+  specific_names <- c("biallelic", "Biallelic")
+  
+  # Apply alpha only to colors not in `specific_names`
+  # mut.colors[!names(mut.colors) %in% specific_names] <- add.alpha(mut.colors[!names(mut.colors) %in% specific_names], 0.6)
+  
+  # mut.colors <- add.alpha(mut.colors, alpha = 0.6)
   
   #############################################
   # == Define CNV/Cytogenetics colors ----
@@ -196,8 +226,6 @@ heatmap_colors <-  function() {
     # 'LOSS' = RD[8],
     'LOSS' = "#313695",
     'deep_LOSS' = RD[8],
-    "cnloss" = RD[10],
-    "cngain" = RD[12],
     "cnloh" = RD[11],
     
     "tra"= RD[3],
@@ -440,6 +468,19 @@ heatmap_colors <-  function() {
                        "extended_intronic_splice_region_variant"= RD[9]
   )
   
+  mut.colors.def <- add.alpha(mut.colors.def, alpha = .6)
+  
+  ###############################
+  # == Purity color
+  ###############################
+  
+  purity_colors <- c(
+    "<20" = "#3E4A89",      # Dark blue for <20
+    "20-40" = "#586BA4",    # Medium-dark blue for 20-40
+    "40-60" = "#7D93B2",    # Medium blue for 40-60
+    "60-80" = "#A9BEDB",    # Light blue for 60-80
+    ">80" = "#D4E4F7"    # Very light blue for 80-100
+  )
   
   #====================================================
   
@@ -453,7 +494,8 @@ heatmap_colors <-  function() {
               path.colors= path.colors,
               ALL.SUBTYPE= ALL.SUBTYPE,
               ALL.mut.colors= ALL.mut.cols,
-              GENDER= GENDER
+              GENDER= GENDER,
+              PURITY= purity_colors
   )) 
   
 }

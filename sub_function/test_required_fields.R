@@ -96,7 +96,8 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
                       "multi_hit_mut",
                       "multi_hit",
                       "biallelic",
-                      "multi_hit_mut_cnv"
+                      "multi_hit_mut_cnv",
+                      "multi_muts"
   )
                       
   # stop_lost, splice_site_variant, stop_retained_variant, initiator_codon_change can be from both indels or subs in VEP

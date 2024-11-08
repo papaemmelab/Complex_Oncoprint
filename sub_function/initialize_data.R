@@ -1,31 +1,29 @@
-initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, sec.1.label= sec.1.label, sec.2.label=NULL, sec.3.label=NULL, REQ.cols, save.path, params){
+initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, min.freq, lookup.table, sec.1.label= sec.1.label, sec.2.label=NULL, sec.3.label=NULL, REQ.cols, save.path, params){
   
   ###############################################
   save.name = eval(params$save.name)
   
-  min.freq <- params$min.freq
-  
 
   if (is.null(save.name)){
     saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,".png"))
-    saveFile.2 <- file.path(save.path,paste0("Heatmap_minFreq_",min.freq,".png"))
+    saveFile.2 <- file.path(save.path,paste0("Oncoprint_minFreq_",min.freq,".png"))
     
   } else {
-    saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,"_",save.name,".png"))
-    saveFile.2 <- file.path(save.path,paste0("Heatmap_minFreq_",min.freq,"_",save.name,".png"))
+    saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",save.name,"_",min.freq,".png"))
+    saveFile.2 <- file.path(save.path,paste0("Oncoprint_minFreq_",save.name,"_",min.freq,".png"))
     
   }
   
   ###############################################
   # Create FONT.obj for calling simple.ht  ====
   ###############################################
-  font.obj <- list(fig.title.font= params$fig.title.font,
-                   legend.title.font= params$legend.title.font,
-                   cols.font= params$cols.font,
-                   pct.font= params$pct.font,
-                   rows.font= params$rows.font,
-                   barplot.font= params$barplot.font,
-                   legend.label.font= params$legend.label.font
+  font.obj <- list(fig.title.font= eval(substitute(fig.title.font), parent.frame()),
+                   legend.title.font= eval(substitute(legend.title.font), parent.frame()),
+                   cols.font= eval(substitute(cols.font), parent.frame()),
+                   pct.font= eval(substitute(pct.font), parent.frame()),
+                   rows.font= eval(substitute(rows.font), parent.frame()),
+                   barplot.font= eval(substitute(barplot.font), parent.frame()),
+                   legend.label.font= eval(substitute(legend.label.font), parent.frame())
   )
   
 
