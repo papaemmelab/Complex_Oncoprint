@@ -6,13 +6,21 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            sec.2.label = "CNVs",
                                            sec.3.label = "SVs", 
                                         
+                                           highlight.events = NULL,
+                                        
                                            surval.data= NULL, show.survival= FALSE, # currently under development
+                                        
+                                           show.blast= FALSE,
+                                        
+                                           show.latest.blast= FALSE,
                                            
                                            show.response= FALSE, response.order= NULL, # ******* allows pre-defined orders
                                         
                                            show.another.banner=FALSE, banner.name= NULL, 
                                            
                                            show.ALL= FALSE, ## added specifically for ALL prj. keep it as temp for other adaptations
+                                        
+                                           show.purity= FALSE,
                                         
                                            show.individuals= FALSE, show.individuals.legend= FALSE,  
                                            
@@ -54,7 +62,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            multis.dot.size = 0.8, #****FONTs: row.groupname.font is the same as rows.font
                                            
-                                           right.w= 13, top.w= 8 , ribbon.size= 1, w=40, h=20,  #**** Sizes of barplots and fig 
+                                           right.w= 13, top.w= 8 , ribbon.size= 1, w=50, h=50,  #**** Sizes of barplots and fig 
                                            
                                            axis.side= "left"){
   
@@ -169,8 +177,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # == Find a subset of Mutations that have >= min.freq variants
   ############################################################
   
+  highlight.genes <- setdiff(highlight.events, c(svs$GENE, cnvs$GENE))
+  
+  include.these.genes <- setdiff(c(include.these.events, highlight.genes), c(svs$GENE, cnvs$GENE))
+
   if (!is.null(include.these.events)) {
-    muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq | GENE %in% include.these.events) 
+    muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq | GENE %in% include.these.genes) 
   } else {
     muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq) 
   }
@@ -191,7 +203,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #=====================
   if (!(is.null(svs))){
     
-    svs.test <- svs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq >= min.freq) 
+    highlight.svs <- setdiff(highlight.events, c(muts$GENE, cnvs$GENE))
+    
+    include.these.svs <- setdiff(c(include.these.events, highlight.svs), c(muts$GENE, cnvs$GENE))
+    
+    svs.test <- svs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq >= min.freq | GENE %in% include.these.svs) 
   
     if (nrow(svs.test)==0){
       cat(paste0("\n >>>>>>>  There are no SVs with min.freq you specified; So, plotting svs with at least 1 hit instead..."))
@@ -206,7 +222,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #=====================
   if (!(is.null(cnvs))){
     
-    cnvs.test <- cnvs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq >= min.freq) 
+    highlight.cnvs <- setdiff(highlight.events, c(muts$GENE, svs$GENE))
+    
+    include.these.cnvs <- setdiff(c(include.these.events, highlight.cnvs), c(muts$GENE, svs$GENE))
+    
+    cnvs.test <- cnvs %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq >= min.freq | GENE %in% include.these.cnvs) 
   
     if (nrow(cnvs.test)==0){
       cat(paste0("\n >>>>>>> There are no CNVs with min.freq you specified; So, plotting cnvs with at least 1 hit instead..."))
@@ -306,13 +326,13 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                   "unavailable","normal","karyotypic_abnormal"), 
                      
                      labels= c("missense","stop_gain","frameshift_indel", "frameshift",
-                               "Inframe indel","Inframe","Splicing variant","splicing",
+                               "Inframe indel","Inframe","splicing variant","splicing",
                                "Initiator_codon change",
                                "biallelic",
                                "complex", "Complex karyotype", "truncating",
                                "Unknown",   
-                               "Amplification", "GAIN",    
-                               "Deletion", "LOSS",
+                               "Amplification", "CNV-Gain",    
+                               "Deletion", "CNV-Loss",
                                "cnLOH", "cnLOH",
                                "Inversion", "INV",
                                "FUS", "TRA",
@@ -393,63 +413,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     
     if (show.ALL) {
       
-      highANY2.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$HIGH_ANY2_TYPE)]
+      source(file.path("./sub_function/add_ALL_banners.R"))
+      list.ALL.banners <- add_ALL_banners(list.my.cols, show.annot.legend, list.ht.colors, lookup.table)
       
-      list.my.cols$HIGH_ANY2_TYPE <- highANY2.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
-      
-     
-      
-      RNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$RNA_SUBTYPE)]
-      
-      list.my.cols$RNA_SUBTYPE <- RNA.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
-      
-      
-      
-      DNA.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$DNA_SUBTYPE)]
-      
-      list.my.cols$DNA_SUBTYPE <- DNA.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
-      
-      
-      gender.col <- list.ht.colors$GENDER[names(list.ht.colors$GENDER) %in% unique(lookup.table$GENDER)]
-      
-      list.my.cols$GENDER <- gender.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
-      
-      
-      purity.col <- list.ht.colors$PURITY[names(list.ht.colors$PURITY) %in% unique(lookup.table$PURITY)]
-      
-      list.my.cols$PURITY <- purity.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
-      
-      
-      fin.subtype.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$FINAL_SUBTYPE)]
-      
-      list.my.cols$FINAL_SUBTYPE <- fin.subtype.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
-      
-      
-      soc.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$SOC_SUBTYPE)]
-      
-      list.my.cols$SOC_SUBTYPE <- soc.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
-      
-      extended.diag.col <- list.ht.colors$ALL.SUBTYPE[names(list.ht.colors$ALL.SUBTYPE) %in% unique(lookup.table$EXTENDED_DIAGNOSTIC_SUBTYPE)]
-      
-      list.my.cols$EXTENDED_DIAGNOSTIC_SUBTYPE <- extended.diag.col
-      
-      show.annot.legend <- c(show.annot.legend, "TRUE")
+      list.my.cols <- list.ALL.banners$updated.list.my.cols
+      show.annot.legend <- list.ALL.banners$updated.show.annot.legend
 
     } else {
+      
       source(file.path("./sub_function/add_new_banner.R"))
       BannerList <- add_new_banner(banner.name, lookup.table, list.my.cols, show.annot.legend)
       list.my.cols= BannerList$list.my.cols
@@ -457,6 +428,30 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
       show.annot.legend= BannerList$show.annot.legend
     }
 
+  }
+  
+  ####################################
+  # == Prepare the survival data ====
+  ####################################
+  
+  if (show.purity){
+    
+    purity.df = df
+    
+    if (!"CNV.WGS.CNVKIT.RHO" %in% colnames(df)) {
+      purity.df <- merge(purity.df, lookup.table %>% dplyr::select(TARGET_NAME, CNV.WGS.CNVKIT.RHO, EXPRESSION.PROFILING.EFFICIENCY), by=c("TARGET_NAME"), all.x= TRUE)
+      
+    }
+    
+    purity.df <- purity.df %>% dplyr::mutate(CNV.WGS.CNVKIT.RHO= ifelse(CNV.WGS.CNVKIT.RHO=="#N/A", NA, as.numeric(CNV.WGS.CNVKIT.RHO)*100),
+                                             RNA.EE= ifelse(EXPRESSION.PROFILING.EFFICIENCY=="#N/A", NA, as.numeric(EXPRESSION.PROFILING.EFFICIENCY)*100)
+                                             )
+    
+    # surv.df$status.col= ifelse(surv.df$Death.status=="1","red","blue")
+    # 
+    # surv.df$pch= ifelse(surv.df$Death.status=="1",13,16)
+    
+    # show.annot.legend <- c(show.annot.legend, "TRUE")
   }
   
   ####################################
@@ -474,6 +469,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     # show.annot.legend <- c(show.annot.legend, "TRUE")
   }
   
+  
   ####################################
   # if showing PATIENTS   ====
   ####################################
@@ -481,9 +477,6 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   if (show.individuals){
     
     n2 <- length(unique(lookup.table$INDIVIDUAL.ID))
-    
-    # color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-    # indiv.col <- color[1:n2]
     
     indiv.col <-  distinctColorPalette(n2)
     
@@ -496,6 +489,15 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   } 
   
   ################################################################
+  # Sort lookup table with the same order of M cols (TARGET_NAMEs)
+  ################################################################
+  
+  if (!is.null(lookup.table)){
+    rownames(lookup.table) <- lookup.table$TARGET_NAME
+    lookup.table <- lookup.table[colnames(M),]
+  }
+  
+  ################################################################
   #### Define Top Annotation ====
   ################################################################
   ###### This enforces to have at least ONE RIBBON + SURV.dots
@@ -503,7 +505,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #========================================================
   
   source(file.path("./sub_function/prepare_TOP_annotation.R"))
-  h1 <- prepare_TOP_annotation(list.colors,show.border,axis.side,barplot.font, legend.title.font, top.w)
+
+  h1 <- prepare_TOP_annotation(list.colors,show.border,axis.side,barplot.font, legend.title.font, top.w, show.purity= show.purity, purity.df= purity.df, show.blast= show.blast, show.latest.blast= show.latest.blast, lookup.table= lookup.table)
+  
+  # col_fun = colorRamp2(c(0, 50, 100), c("blue", "white", "red"))
+  # ha = HeatmapAnnotation(foo = purity.df %>% pull(CNV.WGS.CNVKIT.RHO), col = list(foo = col_fun))
   
   # ###############################################################
   # # == Create a legend for survival if show.survival= TRUE ====
@@ -558,7 +564,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   if (show.title){
     if (show.min.freq){
-      my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
+      # my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
+      my.title <- paste0(title.str," \nTotal Alterations: ", nrow(data),", Unique Events: ", length(unique(muts$GENE)),", Total Samples: ", ncol(M))
+      
     } else{
       my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Top Genes = ",length(unique(muts$GENE)),"; # Samples (Top Category) =", ncol(M))
     }
@@ -676,7 +684,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     }
     
     source(file.path("./sub_function/prepare_BOTTOM_annotation.R"))
-    BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,legend.title.font,legend.label.font,annot.title.side,num.rows.annot.lgd, show.annot.legend, ribbon.size, show.individuals= show.individuals)
+    BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,legend.title.font,legend.label.font,annot.title.side,num.rows.annot.lgd, show.annot.legend, ribbon.size, banner.name= banner.name, show.purity= show.purity, purity.df= purity.df, show.individuals= show.individuals)
     
     h2 <- BotAnnot$h2
     df <- BotAnnot$df.updated
@@ -717,8 +725,41 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   # split.cols.order <- as.numeric(lookup.table$RESPONSE.ELN.R1[match(colnames(M), lookup.table$TARGET_NAME)])
   
+  # Rows to highlight
+  if (!is.null(highlight.events)){
+    
+    myRows <- intersect(highlight.events, rownames(M))
+    
+    # Set stylings for row names and make our selected rows unique
+    row_idx <- which(rownames(M) %in% myRows)
+    fontsizes <- rep(rows.font, nrow(M))
+    fontfaces <- rep("bold", nrow(M))
+    fontcolors <- rep("black", nrow(M))
+    
+    fontsizes[row_idx] <- rows.font+2
+    fontcolors[row_idx] <- "red"
+    # fontcolors[row_idx] <- "#802417"
+    
+    # Set up fill colors for rows
+    fill.colors <- rep("white", nrow(M)) # Default color
+    fill.colors[row_idx] <- "#E8F5E9"        # Highlight color
+
+  } else {
+    fontsizes <- rows.font
+    fontfaces <- "bold"
+    fontcolors <- "black"
+    fill.colors <- "white"
+  }
+
+  
+  # Create text annotation object for displaying row names
+  rowAnno <- rowAnnotation(rows = anno_text(rownames(M), gp = gpar(fontsize = fontsizes, fontface = fontfaces, col = fontcolors, fill= fill.colors)))
+  
+  # col_hclust = hclust(dist(matrix(rnorm(nrow(M)*ncol(M)), ncol(M))))
   
   ht <- oncoPrint(M, get_type = function(x) strsplit(x, ";")[[1]],
+                  
+                  # cluster_columns= col_hclust,
                   
                   alter_fun = alter_fun, col = append(list.ht.colors$mut.colors, list.ht.colors$cyto.colors),
                   
@@ -741,14 +782,22 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   bottom_annotation= h2,
                   top_annotation = h1,
                   
+                  left_annotation= rowAnno,
+                  
                   right_annotation = rowAnnotation(row_bar = anno_oncoprint_barplot(type= NULL,
-                                                                                    border= show.border, 
-                                                                                    axis_param = list(side= "top", 
+                                                                                    border= show.border,
+                                                                                    axis_param = list(side= "top",
                                                                                                       gp= gpar(fontsize= barplot.font, fontface="bold"))),
                                                    annotation_width= unit(right.w,"cm")),   ## controls the width of the row.barplots
                   
+                  
                   #show_row_barplot = TRUE, # obsolete param
                   #row_barplot_width = unit(right.w, "cm"), # obsolete param
+                  
+                  row_names_side = "left", 
+                  show_row_names = FALSE,
+                  
+                  pct_side = "right", # pct_digits = 2,
                   
                   split= LABS,
                   
@@ -785,22 +834,55 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                               legend_height = unit(10, "cm"))
   ) 
   
-  ##======================================================
-  ## Draw simple.ht ====
-  ##======================================================
+  #======================================================
+  # Draw simple.ht ====
+  #======================================================
 
-      # png(saveFile.2,width=3.25,height=3.25,units="in",res=100)
+  # png(saveFile.2,width=3.25,height=3.25,units="in",res=100)
   
   # tiff(saveFile.2, units="in", width=w, height=h, res=600)
 
-  png(saveFile.2, units="in", width=w, height=h, res=600)
+  # png(saveFile.2, units="in", width=w, height=h, res=300)
+  
+  # saveFile.2 <- gsub("png","pdf", saveFile.2)
+  
+  # pdf(saveFile.2, width = w, height = h) # Save as vector PDF
+  
+  # ht.2 <- ht  +  Heatmap(matrix(rnorm(nrow(M)*10), ncol = 10), name = "expr", width = unit(4, "cm"))
+  
+  png(saveFile.2, units="in", width = w / 2, height = h / 2, res = 300)
+
+  # ht.2
+  
+  # draw(ht_list, row_split = sample(c("a", "b"), nrow(mat), replace = TRUE))
+  #======================================================
+  # 
+  #======================================================
     
   if (heatmap.legend.side== annot.legend.side){
     suppressMessages(draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
          heatmap_legend_list = ht.list))
+    decorate_annotation("FINAL_SUBTYPE", {
+      grid.text("Gender", x = unit(-2, "mm"), just = "right")
+    })
+    decorate_annotation("DNA_SUBTYPE", {
+      grid.text("DNA", x = unit(-2, "mm"), just = "right")
+    })
+    
+    
+    rendered_ht <- grid.grabExpr(draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
+                                      heatmap_legend_list = ht.list), 
+                                 vp = viewport(width = 0.8, height = 0.8) # Scale down overall
+                                 )
+    
   } else {
     suppressMessages(draw(ht, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
          heatmap_legend_list = ht.list))
+    
+    rendered_ht <- grid.grabExpr(draw(ht, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
+                                      heatmap_legend_list = ht.list), 
+                                 vp = viewport(width = 0.8, height = 0.8) # Scale down overall
+    )
   }
   
   dev.off()
@@ -838,6 +920,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   return(list(ht.obj = ht, annotation_legend_list= lgd_list, heatmap_legend_list= ht.list,
               onco.samples= final.sample_order,
               onco.genes= final.row_order,
-              Fig.Path = saveFile.2))
+              Fig.Path = saveFile.2,
+              rendered_ht= rendered_ht))
   
 }

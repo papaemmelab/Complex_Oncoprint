@@ -1,8 +1,17 @@
-prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.label.font, annot.title.side, num.rows.annot.lgd, show.annot.legend, ribbon.size, show.individuals= FALSE){
+prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.label.font, annot.title.side, num.rows.annot.lgd, show.annot.legend, ribbon.size, show.purity= FALSE, banner.name= NULL, purity.df= NULL, show.individuals= FALSE){
   
     
     cat(paste0("\nPrepare bottom annotation ...\n"))
     
+    MN <- met.brewer("Monet", type = "discrete")
+    RD <- met.brewer("Redon", type = "discrete")
+    FH <- met.brewer("Isfahan1", type = "discrete") 
+    DM <- met.brewer("Demuth", type = "discrete") 
+    HK1 <- met.brewer("Hokusai1", type = "discrete") 
+    HK3 <- met.brewer("Hokusai3", type = "discrete") 
+    DeR <- met.brewer("Derain", type = "discrete")
+    TP <- met.brewer("Tiepolo", type = "discrete")
+    LK <- met.brewer("Lakota", type = "discrete")  
     # names(list.my.cols)[names(list.my.cols) == "new.banner.col"] <- toupper(banner.name[1])
     
     # anno_oncoprint_barplot(type = NULL, which = c("column", "row"),
@@ -13,6 +22,8 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
     ##=========================================================================================
     ## Sort the df of bottom annotation according to the original simple.ht sample order   ====
     ##=========================================================================================
+  
+    df <- df %>% dplyr::select(all_of(c("TARGET_NAME", toupper(banner.name))))
     
     rownames(df) <- df$TARGET_NAME
     # df<-df[new.column_order,]
@@ -40,31 +51,86 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
     # colnames(df) <- str_to_title(colnames(df)) 
     # names(list.my.cols) <- str_to_title(names(list.my.cols))
     
-    h2 = HeatmapAnnotation(df = df , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
-                           col = list.my.cols,
-                           na_col = "grey",
-                           simple_anno_size = unit(ribbon.size, "cm"), # size of the ribbon
-                           annotation_height =c(20,20), # this controls the height of the response/etc annotation that is added to the columns. However, in order to use mutiple features (e.g., response/celltype/etc) you have to use c(20,20,..) otherwise this generates error
-                           # gap = unit(c(5,5), "mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
-                           gap = unit(rep(5,ncol(df)),"mm"),
-                           show_annotation_name= rep(TRUE,ncol(df)),
-                           show_legend = as.logical(show.annot.legend),
-                           #show_annotation_name= show.annot.legend, 
-                           annotation_name_offset = unit(20, "mm"),
-                           gp = gpar(col = "black"),
-                           annotation_name_gp= gpar(fontsize = legend.title.font, fontface= "bold", col="blue"),
-                           annotation_legend_param = list(#title = legend.tit.df,
-                             title_gp = gpar(fontsize = legend.title.font, fontface="bold"),
-                             # title_position = annot.title.side, 
-                             title_position = annot.title.side, 
+    if (!(show.purity)){
+      h2 = HeatmapAnnotation(df = df , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
+                             col = list.my.cols,
+                             na_col = "grey",
+                             simple_anno_size = unit(ribbon.size, "cm"), # size of the ribbon
+                             annotation_height =c(20,20), # this controls the height of the response/etc annotation that is added to the columns. However, in order to use mutiple features (e.g., response/celltype/etc) you have to use c(20,20,..) otherwise this generates error
+                             # gap = unit(c(5,5), "mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
+                             gap = unit(rep(5,ncol(df)),"mm"),
+                             show_annotation_name= rep(TRUE,ncol(df)),
+                             show_legend = as.logical(show.annot.legend),
+                             #show_annotation_name= show.annot.legend, 
+                             annotation_name_offset = unit(20, "mm"),
+                             gp = gpar(col = "black"),
+                             annotation_name_gp= gpar(fontsize = legend.title.font, fontface= "bold", col="blue"),
+                             annotation_legend_param = list(#title = legend.tit.df,
+                               title_gp = gpar(fontsize = legend.title.font, fontface="bold"),
+                               # title_position = annot.title.side, 
+                               title_position = annot.title.side, 
+                               
+                               labels_gp = gpar(fontsize = legend.label.font),
+                               grid_height= unit(1, "cm"), # size of the box in the legends
+                               grid_width= unit(1, "cm"),
+                               nrow= num.rows.annot.lgd,
+                               legend_height = unit(20, "cm")
+                             )
+      )
+      
+    } else {
+      
+      col_fun = colorRamp2(c(0, 50, 100), c("blue", MN[4], "#af4f2f"))
+      
+      these.cols <- c(all_of(toupper(banner.name)),"CNV.WGS.CNVKIT.RHO","RNA.EE")
+      
+      list.my.cols$CNV.WGS.CNVKIT.RHO <- col_fun
+      list.my.cols$RNA.EE <- col_fun
+      
+      colnames(purity.df) <- toupper(colnames(purity.df))
+      
+      h2 = HeatmapAnnotation(df = purity.df %>% dplyr::select(all_of(these.cols)) , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
+                             col = list.my.cols,
+                             na_col = "white", # Set missing values to white
+                             simple_anno_size = unit(ribbon.size, "cm"), # size of the ribbon
+                             annotation_height =c(20,20), # this controls the height of the response/etc annotation that is added to the columns. However, in order to use mutiple features (e.g., response/celltype/etc) you have to use c(20,20,..) otherwise this generates error
+                             # gap = unit(c(5,5), "mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
+                             gap = unit(rep(5,ncol(purity.df)),"mm"),
                              
-                             labels_gp = gpar(fontsize = legend.label.font),
-                             grid_height= unit(1, "cm"), # size of the box in the legends
-                             grid_width= unit(1, "cm"),
-                             nrow= num.rows.annot.lgd,
-                             legend_height = unit(20, "cm")
-                           )
-    )
+                             show_annotation_name= rep(TRUE,ncol(df)),
+                             #show_annotation_name= show.annot.legend, 
+                             
+                             # show_legend = as.logical(show.annot.legend),
+                             show_legend = c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE),
+                             
+                             annotation_name_offset = unit(20, "mm"),
+                             
+                             # gp = gpar(col = "black"), ## this adds a line to the annotaton blocks not nice for heatmap of purity
+                             
+                             annotation_name_gp= gpar(fontsize = legend.title.font, fontface= "bold", col="blue"),
+                             
+                             
+                             annotation_legend_param = list(#title = legend.tit.df,
+                               CNV.WGS.CNVKIT.RHO = list(title = "HOOOOPOOOO", title_gp = gpar(fontsize = 12)), # Modify legend for "Group" title
+                               
+                                                             # CNV.WGS.CNVKIT.RHO = list(title = "WGS.Purity/RNA.EE"),
+                                                             title_gp = gpar(fontsize = legend.title.font, fontface="bold"),
+                                                             title_position = annot.title.side, 
+                                                             
+                                                             labels_gp = gpar(fontsize = legend.label.font),
+                                                             grid_height= unit(1, "cm"), # size of the box in the legends
+                                                             grid_width= unit(1, "cm"),
+                                                             nrow= num.rows.annot.lgd,
+                                                             legend_height = unit(5, "cm"),
+                               legend_direction = "horizontal"
+                                                             
+                             )
+                               
+      )
+
+    }
+      
+    
 
   return(list(h2=h2,
               df.updated=df,

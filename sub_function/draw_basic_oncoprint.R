@@ -88,7 +88,7 @@ draw_basic_oncoprint <-  function(M, EFFECT, alter_fun,
 ## Draw simple.ht ====
 ##======================================================
 
-  jpeg(saveFile, width=w, height=h, pointsize =14, res = 100)
+  png(saveFile, units="in", width = w / 2, height = h / 2, res = 300)
   
   if (heatmap.legend.side== annot.legend.side){
     to.merge.param= TRUE

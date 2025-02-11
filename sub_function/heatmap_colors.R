@@ -68,6 +68,7 @@ heatmap_colors <-  function() {
                        
                        
                        "stop_gained"= MN[7],
+                       "stop_gain"= MN[7],
                        "stop_retained_variant" =  RD[10],
                        
                        "splice_site_variant"= RD[3],
@@ -189,7 +190,7 @@ heatmap_colors <-  function() {
   specific_names <- c("biallelic", "Biallelic")
   
   # Apply alpha only to colors not in `specific_names`
-  # mut.colors[!names(mut.colors) %in% specific_names] <- add.alpha(mut.colors[!names(mut.colors) %in% specific_names], 0.6)
+  mut.colors[!names(mut.colors) %in% specific_names] <- add.alpha(mut.colors[!names(mut.colors) %in% specific_names], 0.6)
   
   # mut.colors <- add.alpha(mut.colors, alpha = 0.6)
   
@@ -371,6 +372,8 @@ heatmap_colors <-  function() {
     "Excluded" = "#000000",
     "excluded" = "#000000",
     "Not Available" = "#FFFFFF",
+    "No-WGS"=  "#FFFFFF",
+    "No-RNA"=  "#FFFFFF",
     "Normal"= MN[9],
     "Other" = "#C2C2C2",
     "other"= "#C2C2C2",
@@ -420,6 +423,7 @@ heatmap_colors <-  function() {
     "Low Quality" = DM[7],
     "failed"= DM[10],
     "Failed"= DM[10],
+    "FAILED"= DM[10],
     "NoData"= "#FFFFFF", # white
     "ABL-class"= HK3[1],
     "CRLF2" = HK3[2],
@@ -479,7 +483,9 @@ heatmap_colors <-  function() {
     "20-40" = "#586BA4",    # Medium-dark blue for 20-40
     "40-60" = "#7D93B2",    # Medium blue for 40-60
     "60-80" = "#A9BEDB",    # Light blue for 60-80
-    ">80" = "#D4E4F7"    # Very light blue for 80-100
+    ">80" = "#D4E4F7",    # Very light blue for 80-100
+    "No-WGS"= "white",
+    "No-RNA"= "white"
   )
   
   #====================================================
@@ -495,7 +501,8 @@ heatmap_colors <-  function() {
               ALL.SUBTYPE= ALL.SUBTYPE,
               ALL.mut.colors= ALL.mut.cols,
               GENDER= GENDER,
-              PURITY= purity_colors
+              PURITY= purity_colors,
+              EE= purity_colors
   )) 
   
 }
