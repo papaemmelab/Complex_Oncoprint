@@ -1,47 +1,84 @@
-This is to create oncoprints of variants (mutations [required], copy number variants [optional], structural variants [optional]).
-Look at the example file and documentation for an example of how to call the function. 
+# generate_complex_oncoprint
 
-Simple example: 
+**generate_complex_oncoprint** is an R function that utilizes the **jokergoo/ComplexHeatmap** package to create **oncoprints** for visualizing variants, including **mutations** (required), **copy number variants (CNVs)** (optional), and **structural variants (SVs)** (optional). The function provides publication-ready visuals with easily adjustable aesthetics.
 
-    source("./generate_complex_oncoprint.R")
-  
-    ht <-  generate_complex_oncoprint(muts= MUT, 
+The colors follow mutation effects based on the **Isabl pipeline default formats** (Elli Papaemanuil’s Lab).
 
-                                    show.sample.names = TRUE, show.border= FALSE,
+---
 
-                                    min.freq= 1, show.title= TRUE, title.str=  "Example 1 - YOHOOOO oncoprint with NO ERROR!", 
+## 🚀 Installation
 
-                                    save.name= "Example_1.A",
+To install **ComplexHeatmap**, ensure you have **Bioconductor** installed:
 
-                                    save.path= "./example_oncoprints/") 
- 
-
-Feb 2019: features added to show RESPONSE, and SAMPLE.SOURCE (for example you can choose B-cell, T-cell, or you can even pass on the disease type such as PV, ET, etc.). Also, for timepoint data, you have the option to show a heatbar of samples that belong to the same patient. 
-Sep 2019: new features added to allow defining the second annotation ribbon as wish (e.g., RACE or DISEASE). Other visualization added and will be explained in an analysis session.
-You can install/upgrade using:
-
+```r
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
 BiocManager::install("ComplexHeatmap")
+```
 
+---
 
-Current recognized terms for mutation/CNV/SV types (col EFFECT) are:
+## 📌 Usage
 
- [1] "amp"                          "amplification"                "CN-del"                       "CN-gain"                      "complex"                     
- [6] "complex_change_in_transcript" "complex_karyotype"            "del"                          "deletion"                     "frame_shift_del"             
-[11] "frame_shift_ins"              "frameshift_del"               "frameshift_indel"             "frameshift_insertion"         "frameshift_variant"          
-[16] "fus"                          "fusion"                       "gain"                         "in_frame_del"                 "in_frame_ins"                
-[21] "inconclusive"                 "inframe_codon_gain"           "inframe_codon_loss"           "inframe_deletion"             "inframe_indel"               
-[26] "inframe_insersion"            "inframe_variant"              "initiator_codon_change"       "inv"                          "inversion"                   
-[31] "karyotypic_abnormal"          "LOH"                          "loss"                         "missense"                     "missense_codon"              
-[36] "missense_mutation"            "N_E"                          "N/A"                          "N/E"                          "non_synonymous_codon"        
-[41] "nonsense_mutation"            "nonstop_mutation"             "normal"                       "normal_karyotype"             "other_cnvs"                  
-[46] "other_snvs"                   "other_svs"                    "rearr"                        "rearrangement"                "rearrangements"              
-[51] "splice_site"                  "splice_site_variant"          "stop_gain"                    "stop_gained"                  "stop_lost"                   
-[56] "stop_retained_variant"        "tandem dup"                   "tandem duplications"          "tandem_duplications"          "trans"                       
-[61] "translation_start_site"       "translocation"                "unavailable"                  "unknown"  
+### Simple Example
 
-IMPORTANT: 
+```r
+source("./generate_complex_oncoprint.R")
 
-Please contact rahnaman@mskcc.org if you had any mutation-type that wanted to have a specific representation for it in Oncoprint.
+ht <- generate_complex_oncoprint(
+    muts = MUT, 
+    show.sample.names = TRUE, 
+    show.border = FALSE,
+    min.freq = 1, 
+    show.title = TRUE, 
+    title.str = "Example 1 - YOHOOOO oncoprint with NO ERROR!", 
+    save.name = "Example_1.A",
+    save.path = "./example_oncoprints/"
+)
+```
 
+---
+
+## 📊 Features
+
+- **Supports**:
+  - Mutations (required)
+  - Copy Number Variants (**CNVs**, optional)
+  - Structural Variants (**SVs**, optional)
+- **Customizable aesthetics** for publication-quality figures.
+- **Annotation banners**: Add categorical variables from a lookup table as **bottom annotations**:
+  ```r
+  show.another.banner = TRUE
+  banner.name = c("FEATURE.COL.1", "FEATURE.COL.2", ...)
+  ```
+- **Paired sample oncoprint** for pre/post visualization (*experimental, may throw errors*).
+- **Timepoint visualization**: Option to show a **heatbar** for samples from the same patient.
+- **Annotation barplots**: Examples available in `BOTTOM_annot` script for specific projects (**not yet integrated** into parameter-based runs).
+
+---
+
+## 📁 File Structure
+
+- **Example script & documentation**: Refer to example files for more details on function usage.
+- **Recognized terms** for mutation, CNV, and SV types (column: `EFFECT`):  
+  - Refer to: `~/Complex_Oncoprint/sub_function/test_required_fields.R`.
+
+---
+
+## ⚠️ Notes
+
+- **Paired sample oncoprint** is available but **may need updates**.
+- If you need a **specific mutation representation**, please reach out.
+
+📩 Contact: **rahnaman@mskcc.org**
+
+---
+
+## 🙌 Acknowledgments
+
+Thanks to **Zuguang Gu** for the **ComplexHeatmap** package!  
+🔗 [https://github.com/jokergoo/ComplexHeatmap](https://github.com/jokergoo/ComplexHeatmap)
+
+---
+
+**Last updated:** *February 2025*
