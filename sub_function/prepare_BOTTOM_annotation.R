@@ -1,4 +1,15 @@
-prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.label.font, annot.title.side, num.rows.annot.lgd, show.annot.legend, ribbon.size, show.purity= FALSE, banner.name= NULL, purity.df= NULL, show.individuals= FALSE){
+prepare_BOTTOM_annotation <- function(df, ## lookup table
+                                      
+                                      list.my.cols,legend.title.font,legend.label.font, annot.title.side, 
+                                      num.rows.annot.lgd, show.annot.legend, 
+                                      ribbon.size, 
+                                      
+                                      show.ALL= FALSE,
+                                      show.MPN= FALSE,
+
+                                      banner.name= NULL, 
+                                      
+                                      show.individuals= FALSE){
   
     
     cat(paste0("\nPrepare bottom annotation ...\n"))
@@ -23,6 +34,7 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
     ## Sort the df of bottom annotation according to the original simple.ht sample order   ====
     ##=========================================================================================
   
+    banner.name <- c(banner.name, c("CNV.WGS.CNVKIT.RHO", "RNA.EE"))
     df <- df %>% dplyr::select(all_of(c("TARGET_NAME", toupper(banner.name))))
     
     rownames(df) <- df$TARGET_NAME
@@ -51,7 +63,14 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
     # colnames(df) <- str_to_title(colnames(df)) 
     # names(list.my.cols) <- str_to_title(names(list.my.cols))
     
-    if (!(show.purity)){
+    if (!(show.ALL)){
+      df <- df %>% dplyr::select(all_of(c("TARGET_NAME", toupper(banner.name))))
+      
+      rownames(df) <- df$TARGET_NAME
+      # df<-df[new.column_order,]
+      rownames(df) <- NULL
+      df$TARGET_NAME <- NULL
+      
       h2 = HeatmapAnnotation(df = df , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
                              col = list.my.cols,
                              na_col = "grey",
@@ -66,19 +85,30 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
                              gp = gpar(col = "black"),
                              annotation_name_gp= gpar(fontsize = legend.title.font, fontface= "bold", col="blue"),
                              annotation_legend_param = list(#title = legend.tit.df,
-                               title_gp = gpar(fontsize = legend.title.font, fontface="bold"),
-                               # title_position = annot.title.side, 
-                               title_position = annot.title.side, 
+                             title_gp = gpar(fontsize = legend.title.font, fontface="bold"),
+                             title_position = annot.title.side, 
                                
-                               labels_gp = gpar(fontsize = legend.label.font),
-                               grid_height= unit(1, "cm"), # size of the box in the legends
-                               grid_width= unit(1, "cm"),
-                               nrow= num.rows.annot.lgd,
-                               legend_height = unit(20, "cm")
-                             )
-      )
+                             labels_gp = gpar(fontsize = legend.label.font),
+                             grid_height= unit(1, "cm"), # size of the box in the legends
+                             grid_width= unit(1, "cm"),
+                             nrow= num.rows.annot.lgd,
+                             legend_height = unit(20, "cm"),
+                             annotation_name_align = TRUE,
+                             
+                             annotation_legend_param = list(title = "Complex Karyotype Status",
+                                                            COMPLEX.KARYOTYPE = list(title = "Complex Karyotype Status", title_gp = gpar(fontsize = 12)), # Modify legend for "Group" title
+                                                              title_gp = gpar(fontsize = legend.title.font, fontface="bold"),
+                                                            title_position = "left-center", 
+                                                             
+                                                             labels_gp = gpar(fontsize = legend.label.font),
+                                                             grid_height= unit(1, "cm"), # size of the box in the legends
+                                                             grid_width= unit(1, "cm"),
+                                                             nrow= num.rows.annot.lgd,
+                                                             legend_height = unit(5, "cm"),
+                                                             legend_direction = "horizontal")
+                             ))
       
-    } else {
+    } else if (show.ALL) {
       
       col_fun = colorRamp2(c(0, 50, 100), c("blue", MN[4], "#af4f2f"))
       
@@ -87,15 +117,15 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
       list.my.cols$CNV.WGS.CNVKIT.RHO <- col_fun
       list.my.cols$RNA.EE <- col_fun
       
-      colnames(purity.df) <- toupper(colnames(purity.df))
+      colnames(df) <- toupper(colnames(df))
       
-      h2 = HeatmapAnnotation(df = purity.df %>% dplyr::select(all_of(these.cols)) , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
+      h2 = HeatmapAnnotation(df = df %>% dplyr::select(all_of(these.cols)) , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
                              col = list.my.cols,
                              na_col = "white", # Set missing values to white
                              simple_anno_size = unit(ribbon.size, "cm"), # size of the ribbon
                              annotation_height =c(20,20), # this controls the height of the response/etc annotation that is added to the columns. However, in order to use mutiple features (e.g., response/celltype/etc) you have to use c(20,20,..) otherwise this generates error
                              # gap = unit(c(5,5), "mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
-                             gap = unit(rep(5,ncol(purity.df)),"mm"),
+                             gap = unit(rep(5,ncol(df)),"mm"),
                              
                              show_annotation_name= rep(TRUE,ncol(df)),
                              #show_annotation_name= show.annot.legend, 
@@ -128,7 +158,7 @@ prepare_BOTTOM_annotation <- function(df, list.my.cols,legend.title.font,legend.
                                
       )
 
-    }
+    } 
       
     
 

@@ -12,13 +12,13 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                         
                                            show.blast= FALSE,
                                         
-                                           show.latest.blast= FALSE,
-                                           
                                            show.response= FALSE, response.order= NULL, # ******* allows pre-defined orders
                                         
                                            show.another.banner=FALSE, banner.name= NULL, 
                                            
                                            show.ALL= FALSE, ## added specifically for ALL prj. keep it as temp for other adaptations
+                                        
+                                           show.MPN= FALSE,
                                         
                                            show.purity= FALSE,
                                         
@@ -163,7 +163,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   source(file.path("./sub_function/test_required_fields.R"))
   
   rename_IDs <- test_required_fields(muts= muts,  svs=svs, cnvs=cnvs, show.another.banner= show.another.banner, banner.name= banner.name, show.response= show.response, 
-                                     split.cols.by= split.cols.by, show.individuals= show.individuals, lookup.table= lookup.table, annot.title.side= annot.title.side)
+                                     split.cols.by= split.cols.by, show.individuals= show.individuals, lookup.table= lookup.table, annot.title.side= annot.title.side,
+                                     show.ALL= show.ALL)
   
   muts <- rename_IDs$muts
   cnvs <- rename_IDs$cnvs
@@ -308,10 +309,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # == Define Labels for MUT/CNV/... segments  =====
   ##############################################################
   
-  EFFECT.all <- list(variants = c("missense","stop_gain","frameshift_indel", "frameshift",
+  EFFECT.all <- list(variants = c("biallelic", "missense","stop_gain","frameshift_indel", "frameshift",
                                   "inframe_indel","inframe","splice_site_variant", "splicing",
                                   "initiator_codon_change",
-                                  "biallelic",
+                                  
                                   "complex", "complex_karyotype", "truncating",
                                   "unknown", 
                                   "amp", "gain",    
@@ -325,18 +326,18 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                   "other_cnvs",
                                   "unavailable","normal","karyotypic_abnormal"), 
                      
-                     labels= c("missense","stop_gain","frameshift_indel", "frameshift",
+                     labels= c("biallelic","missense","stop_gain","frameshift_indel", "frameshift",
                                "Inframe indel","Inframe","splicing variant","splicing",
                                "Initiator_codon change",
-                               "biallelic",
+     
                                "complex", "Complex karyotype", "truncating",
                                "Unknown",   
-                               "Amplification", "CNV-Gain",    
-                               "Deletion", "CNV-Loss",
+                               "Amplification", "gain (CNV)",    
+                               "Deletion", "loss (CNV)",
                                "cnLOH", "cnLOH",
                                "Inversion", "INV",
                                "FUS", "TRA",
-                               "TRA","Other SVs","Tandem duplication", "Duplication","Rearrangement",
+                               "translocation","Other SVs","Tandem duplication", "Duplication","Rearrangement",
                                "Add.","Der.",
                                "Other mutations",
                                "Other CN alterations",
@@ -346,6 +347,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   labels = EFFECT.all[[2]][EFFECT.all[[1]] %in% data$EFFECT]
   )
   
+  if (show.MPN){
+    
+  COMPLEX.KARYOTYPE.STATUS <- list (variants = c("complex", "not complex", "not available"),
+                  labels = c("complex", "not complex", "not available"))
+  }
   
   # LABS <- factor(gene.list$LAB, levels=c("Substitusions/Indels","Cytogenetics","CNVs", "SVs"))
   
@@ -406,6 +412,21 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   } 
   
   #============================
+  # if showing RESPONSE ====  
+  #============================
+  
+  if (show.MPN){
+    cat(paste0("\nPrepare RESPONSE...\n"))
+    
+    complex.col <- list.ht.colors$COMPLEX.KARYOTYPE[names(list.ht.colors$COMPLEX.KARYOTYPE) %in% unique(lookup.table$COMPLEX.KARYOTYPE.STATUS)]
+    
+    list.my.cols$COMPLEX.KARYOTYPE.STATUS <- complex.col
+    
+    show.annot.legend <- c(show.annot.legend, "TRUE")
+    
+  } 
+  
+  #============================
   # if showing NEW.BANNER ====   
   #============================
   
@@ -418,6 +439,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
       
       list.my.cols <- list.ALL.banners$updated.list.my.cols
       show.annot.legend <- list.ALL.banners$updated.show.annot.legend
+      
+      # banner.name <- c(banner.name, c("CNV.WGS.CNVKIT.RHO","RNA.EE","CNV.WGS.ACE.RHO"))
 
     } else {
       
@@ -434,16 +457,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # == Prepare the survival data ====
   ####################################
   
-  if (show.purity){
-    
-    purity.df = df
+  if (show.ALL){
     
     if (!"CNV.WGS.CNVKIT.RHO" %in% colnames(df)) {
-      purity.df <- merge(purity.df, lookup.table %>% dplyr::select(TARGET_NAME, CNV.WGS.CNVKIT.RHO, EXPRESSION.PROFILING.EFFICIENCY), by=c("TARGET_NAME"), all.x= TRUE)
+      df <- merge(df, lookup.table %>% dplyr::select(TARGET_NAME, CNV.WGS.CNVKIT.RHO, EXPRESSION.PROFILING.EFFICIENCY), by=c("TARGET_NAME"), all.x= TRUE)
       
     }
     
-    purity.df <- purity.df %>% dplyr::mutate(CNV.WGS.CNVKIT.RHO= ifelse(CNV.WGS.CNVKIT.RHO=="#N/A", NA, as.numeric(CNV.WGS.CNVKIT.RHO)*100),
+    df <- df %>% dplyr::mutate(CNV.WGS.CNVKIT.RHO= ifelse(CNV.WGS.CNVKIT.RHO=="#N/A", NA, as.numeric(CNV.WGS.CNVKIT.RHO)*100),
                                              RNA.EE= ifelse(EXPRESSION.PROFILING.EFFICIENCY=="#N/A", NA, as.numeric(EXPRESSION.PROFILING.EFFICIENCY)*100)
                                              )
     
@@ -506,7 +527,18 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   source(file.path("./sub_function/prepare_TOP_annotation.R"))
 
-  h1 <- prepare_TOP_annotation(list.colors,show.border,axis.side,barplot.font, legend.title.font, top.w, show.purity= show.purity, purity.df= purity.df, show.blast= show.blast, show.latest.blast= show.latest.blast, lookup.table= lookup.table)
+  h1 <- prepare_TOP_annotation(list.colors, show.border, 
+                               axis.side,barplot.font, legend.title.font, 
+                               top.w, 
+                               
+                               show.purity= show.purity, 
+                               purity.df= df, 
+                               
+                               show.blast= show.blast, 
+                               show.MPN= show.MPN, 
+                               show.ALL= show.ALL,
+                               
+                               lookup.table= lookup.table)
   
   # col_fun = colorRamp2(c(0, 50, 100), c("blue", "white", "red"))
   # ha = HeatmapAnnotation(foo = purity.df %>% pull(CNV.WGS.CNVKIT.RHO), col = list(foo = col_fun))
@@ -590,7 +622,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   row_order <- if (is.null(muts.order) && is.null(svs.order) && is.null(cnvs.order)) {
     NULL
   } else {
-    c(muts.order.new, cnvs.order.new, svs.order.new)
+    row_order <- c(muts.order.new, cnvs.order.new, svs.order.new)
   }
   
   ###############################################################
@@ -684,7 +716,13 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     }
     
     source(file.path("./sub_function/prepare_BOTTOM_annotation.R"))
-    BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,legend.title.font,legend.label.font,annot.title.side,num.rows.annot.lgd, show.annot.legend, ribbon.size, banner.name= banner.name, show.purity= show.purity, purity.df= purity.df, show.individuals= show.individuals)
+    BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,
+                                          legend.title.font,legend.label.font,
+                                          annot.title.side, num.rows.annot.lgd, show.annot.legend, 
+                                          ribbon.size, banner.name= banner.name, 
+                                          show.individuals= show.individuals,
+                                          show.ALL= show.ALL,
+                                          show.MPN= show.MPN)
     
     h2 <- BotAnnot$h2
     df <- BotAnnot$df.updated
@@ -737,7 +775,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     fontcolors <- rep("black", nrow(M))
     
     fontsizes[row_idx] <- rows.font+2
-    fontcolors[row_idx] <- "red"
+    fontcolors[row_idx] <- "black" #RD[8]
     # fontcolors[row_idx] <- "#802417"
     
     # Set up fill colors for rows
@@ -756,6 +794,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   rowAnno <- rowAnnotation(rows = anno_text(rownames(M), gp = gpar(fontsize = fontsizes, fontface = fontfaces, col = fontcolors, fill= fill.colors)))
   
   # col_hclust = hclust(dist(matrix(rnorm(nrow(M)*ncol(M)), ncol(M))))
+  
+  if (show.MPN){
+    names(h2) <- "Complex karyotype Status"
+  }
+  
   
   ht <- oncoPrint(M, get_type = function(x) strsplit(x, ";")[[1]],
                   

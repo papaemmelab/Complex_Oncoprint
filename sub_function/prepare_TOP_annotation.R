@@ -1,5 +1,10 @@
 prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.font, legend.title.font, top.w, 
-                                   show.purity= FALSE, purity.df= NULL, show.survival=FALSE, show.blast= FALSE,show.latest.blast= FALSE, 
+                                   
+                                   show.purity= FALSE, purity.df= NULL, 
+                                   show.survival=FALSE, 
+                                   show.blast= FALSE,
+                                   show.MPN= FALSE, 
+                                   
                                    lookup.table= lookup.table,  ...){
   
   library(circlize)
@@ -55,8 +60,10 @@ prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.fon
       annotation_height = unit(c(20), "mm"), # this controls the height of the response/etc annotation that is added to the columns. However, in order to use mutiple features (e.g., response/celltype/etc) you have to use c(20,20,..) otherwise this generates error
       
       gap = unit(c(3), "mm")) 
+    
+    ####################################
   
-  } else if (show.latest.blast){
+  } else if (show.MPN){
       
       # Update the annotations with the shared ylim
       h1 <- HeatmapAnnotation(column_bar = anno_oncoprint_barplot(type= NULL,
@@ -70,7 +77,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.fon
                               BLAST = anno_points(lookup.table$LATEST.BLAST,  ylim = c(0, max(lookup.table$LATEST.BLAST, na.rm = TRUE)+5),
                                                       size = unit(5,"mm"),
                                                       width = unit(1, "cm"),
-                                                      gp = gpar(col = ifelse(lookup.table$LATEST.BLAST > 20, RD[1], RD[6])),
+                                                      gp = gpar(col = ifelse(lookup.table$LATEST.BLAST > 20, RD[6], RD[1])),
                                                       height = unit(1, "cm"),
                                                   axis_param = list(side = axis.side, 
                                                                     gp= gpar(fontsize= barplot.font, fontface="bold"))),
@@ -89,9 +96,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.fon
                               gap = unit(c(3), "mm")) 
       
     }
-  
-  ####################################
-  ####################################
+    ####################################
   
   else if (show.survival) {
     h1 = HeatmapAnnotation(column_bar = anno_oncoprint_barplot(type= NULL,
@@ -132,7 +137,8 @@ prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.fon
     #                                 nrow= num.rows.annot.lgd,
     #                                 legend_height = unit(2, "cm")
     
-    
+    ####################################
+
   } else if (show.purity){
 
       col_fun = colorRamp2(c(0, 50, 100), c("blue", "white", "#af4f2f"))

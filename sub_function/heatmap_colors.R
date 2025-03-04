@@ -242,6 +242,13 @@ heatmap_colors <-  function() {
   cyto.colors <- add.alpha(cyto.colors, alpha = .7)
   
   ###########################################
+  # == Complex Karyotype colors (Publication case) ----
+  ###########################################
+  
+  complex.colors <- list("complex"= RD[10],"not complex"= RD[11],"not available"="grey")
+  complex.colors <- unlist(complex.colors)
+  
+  ###########################################
   # == ELN colors (Publication case) ----
   ###########################################
   
@@ -502,7 +509,8 @@ heatmap_colors <-  function() {
               ALL.mut.colors= ALL.mut.cols,
               GENDER= GENDER,
               PURITY= purity_colors,
-              EE= purity_colors
+              EE= purity_colors,
+              COMPLEX.KARYOTYPE= complex.colors
   )) 
   
 }

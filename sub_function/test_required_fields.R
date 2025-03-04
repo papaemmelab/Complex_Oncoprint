@@ -1,6 +1,7 @@
 test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title.side= annot.title.side,
                                   patients.order= NULL, muts.order= NULL, cnvs.order= NULL, svs.order= NULL,
                                   show.another.banner=FALSE, banner.name= NULL, 
+                                  show.ALL= FALSE,
                                   show.response= FALSE, split.cols.by = NULL, show.individuals= FALSE, lookup.table= NULL)
   {
 
@@ -214,6 +215,11 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
   if (show.individuals){
     required.cols.lookup <-  c(required.cols.lookup,"INDIVIDUAL.ID")
   }
+  
+  if (show.ALL){
+    required.cols.lookup <-  c(required.cols.lookup,c("CNV.WGS.CNVKIT.RHO", "CNV.WGS.ACE.RHO","EXPRESSION.PROFILING.EFFICIENCY"))
+  }
+  
   
   if ((show.another.banner | show.response | show.individuals ) | (!is.null(split.cols.by))) {
     
