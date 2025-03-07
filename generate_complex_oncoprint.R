@@ -775,9 +775,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     fontcolors <- rep("black", nrow(M))
     
     fontsizes[row_idx] <- rows.font+2
-    fontcolors[row_idx] <- "black" #RD[8]
-    # fontcolors[row_idx] <- "#802417"
-    
+    fontcolors[row_idx] <- "#175f5d" #FH[7]
+
     # Set up fill colors for rows
     fill.colors <- rep("white", nrow(M)) # Default color
     fill.colors[row_idx] <- "#E8F5E9"        # Highlight color
