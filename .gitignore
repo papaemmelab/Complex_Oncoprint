@@ -4,3 +4,6 @@
 .Ruserdata
 *.txt
 *.txt
+*.txt
+*.csv
+*.RData
