@@ -1,6 +1,8 @@
 prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.font, legend.title.font, top.w, 
                                    
-                                   show.purity= FALSE, purity.df= NULL, 
+                                   show.ALL= FALSE, 
+                                   purity.df= NULL, 
+                                   
                                    show.survival=FALSE, 
                                    show.blast= FALSE,
                                    show.MPN= FALSE, 
@@ -139,21 +141,14 @@ prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.fon
     
     ####################################
 
-  } else if (show.purity){
+  } else if (show.ALL){
 
       col_fun = colorRamp2(c(0, 50, 100), c("blue", "white", "#af4f2f"))
 
-      h1 = HeatmapAnnotation(column_bar = anno_oncoprint_barplot(type= NULL,
-                                                                 border= show.border, # do you want the top-barplot to have a border?
-                                                                 axis_param = list(side = axis.side, 
-                                                                                   # side = "right", 
-                                                                                   #labels = c("zero", "half", "one"),
-                                                                                   # at = c(0, 0.5, 1), 
-                                                                                   # labels_rot = 45,
-                                                                                   gp= gpar(fontsize= barplot.font, fontface="bold"))), 
-                             TBA.Survival = anno_points(purity.df %>% dplyr::select(CNV.WGS.CNVKIT.RHO),
+      h1 = HeatmapAnnotation(TBA.Blast = anno_points(lookup.table %>% dplyr::select(AGEATDIAGNOSIS),
                                                         axis_param = list(side = axis.side, 
-                                                                          gp= gpar(fontsize= barplot.font, fontface="bold"))),
+                                                                          gp= gpar(fontsize= barplot.font, fontface="bold")),
+                                                     border = FALSE),
                              
                              # CNVkit.Purity  = purity.df %>% pull(CNV.WGS.CNVKIT.RHO),  
                              # 
@@ -171,7 +166,9 @@ prepare_TOP_annotation <- function(list.colors,show.border,axis.side,barplot.fon
                              
                              simple_anno_size = unit(1, "cm"), height = unit(top.w, "cm"),
                              
-                             annotation_name_gp= gpar(fontsize= legend.title.font, fontface="bold", col="blue"), 
+                             annotation_name_gp= gpar(fontsize= legend.title.font, fontface="bold", col="grey"), 
+                             annotation_name_side= "left", ## brings TBA.blast label to left
+                             annotation_name_rot= 0,
                              
                              show_legend = c(TRUE, FALSE, FALSE),
                              

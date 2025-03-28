@@ -1,4 +1,6 @@
 generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # ******* define variants DFs [mut is required]
+                                        
+                                           added.heatmap = NULL,
                                            
                                            cnvs.order= NULL, svs.order= NULL, muts.order= NULL, patients.order= NULL,   # ******* allows pre-defined orders
                                         
@@ -337,7 +339,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                "cnLOH", "cnLOH",
                                "Inversion", "INV",
                                "FUS", "TRA",
-                               "translocation","Other SVs","Tandem duplication", "Duplication","Rearrangement",
+                               "TRA","Other SVs","Tandem duplication", "Duplication","Rearrangement",
                                "Add.","Der.",
                                "Other mutations",
                                "Other CN alterations",
@@ -368,7 +370,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual' & brewer.pal.info$colorblind==TRUE,]
   # col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
   
-  df <-  data.frame(TARGET_NAME= colnames(M))
+  df <-  data.frame(TARGET_NAME= colnames(M)) #### IMPORTANT :: here we make sure the order of df = colnames of M (this guarantees the correct order of annotation)
   df$TARGET_NAME <- as.character(df$TARGET_NAME)
   
   surv.df = df
@@ -788,7 +790,6 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     fill.colors <- "white"
   }
 
-  
   # Create text annotation object for displaying row names
   rowAnno <- rowAnnotation(rows = anno_text(rownames(M), gp = gpar(fontsize = fontsizes, fontface = fontfaces, col = fontcolors, fill= fill.colors)))
   
@@ -810,6 +811,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   column_order = samples.order.mod,
                   
                   row_order = row_order, #control the order of genes (rows)
+                  
+                  row_split = LABS,
                   
                   remove_empty_columns = rem.empty,
                   
@@ -876,58 +879,102 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                               legend_height = unit(10, "cm"))
   ) 
   
+  
+  
+  
+  
   #======================================================
-  # Draw simple.ht ====
+  # Draw  ====
   #======================================================
-
-  # png(saveFile.2,width=3.25,height=3.25,units="in",res=100)
-  
-  # tiff(saveFile.2, units="in", width=w, height=h, res=600)
-
-  # png(saveFile.2, units="in", width=w, height=h, res=300)
-  
-  # saveFile.2 <- gsub("png","pdf", saveFile.2)
-  
-  # pdf(saveFile.2, width = w, height = h) # Save as vector PDF
   
   # ht.2 <- ht  +  Heatmap(matrix(rnorm(nrow(M)*10), ncol = 10), name = "expr", width = unit(4, "cm"))
+  # ht.2
+  # draw(ht_list, row_split = sample(c("a", "b"), nrow(mat), replace = TRUE))
+  
+  
+  #==================================================
+  # If you have a bottom heatmap (heat.2.df)  ----
+  #==================================================
+  
+  if (!is.null(added.heatmap)){
+    
+    source(file.path("./sub_function/create_lineage_heatmaps.R"))
+    
+    # == what cols are missing from RNA deconv that are in oncoplot M
+    
+    missing_cols <- setdiff(colnames(M), colnames(added.heatmap$cell_state_zscores))
+    
+    # == Add NA to deconv for missing
+    
+    cell.state.mod <- added.heatmap$cell_state_zscores %>% bind_cols(data.frame(matrix(NA, nrow = nrow(added.heatmap$cell_state_zscores), ncol = length(missing_cols), 
+                                                            dimnames = list(NULL, missing_cols))))
+    rownames(cell.state.mod) <- rownames(added.heatmap$cell_state_zscores)
+    
+    dev.index.mod <- added.heatmap$B_dev_index %>% bind_cols(data.frame(matrix(NA, nrow = nrow(added.heatmap$B_dev_index), ncol = length(missing_cols), 
+                                   dimnames = list(NULL, missing_cols))))
+    
+    ling.index.mod <- added.heatmap$lineage_index %>% bind_cols(data.frame(matrix(NA, nrow = nrow(added.heatmap$lineage_index), ncol = length(missing_cols), 
+                                                            dimnames = list(NULL, missing_cols))))
+    # == Now sort according to the M sample order
+    
+    added.heatmap$cell.state <- cell.state.mod[,colnames(M)]
+    added.heatmap$dev.index  <- dev.index.mod[,colnames(M)]
+    added.heatmap$ling.index <- ling.index.mod[,colnames(M)]
+    
+    # == Run adding extra heatmaps
+    
+    cibersort.heatmaps <- create_lineage_heatmaps (heat.2.df= added.heatmap, 
+                                                # heat.2.name= c("Cell-population z-score","Scaled Index"),
+                                                legend.title.font = legend.title.font,
+                                                legend.label.font = legend.label.font,
+                                                annot.title.side = annot.title.side,
+                                                rows.fs= rows.font,
+                                                cols.fs= 10, 
+                                                show.sample.names = show.sample.names )
+
+    hh <- ht %v%  cibersort.heatmaps$heat.1 %v% cibersort.heatmaps$heat.2 %v% cibersort.heatmaps$heat.3 #cibersort.heatmaps$heat.1 %v%
+    
+    } 
+  else {hh <- ht} #bottom.heatmap.list$heat.1 %v%
+    
+  #============================================
+  # Start png and draw ----
+  #============================================
   
   png(saveFile.2, units="in", width = w / 2, height = h / 2, res = 300)
-
-  # ht.2
   
-  # draw(ht_list, row_split = sample(c("a", "b"), nrow(mat), replace = TRUE))
-  #======================================================
-  # 
-  #======================================================
-    
   if (heatmap.legend.side== annot.legend.side){
-    suppressMessages(draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
-         heatmap_legend_list = ht.list))
-    decorate_annotation("FINAL_SUBTYPE", {
-      grid.text("Gender", x = unit(-2, "mm"), just = "right")
-    })
-    decorate_annotation("DNA_SUBTYPE", {
-      grid.text("DNA", x = unit(-2, "mm"), just = "right")
-    })
-    
-    
-    rendered_ht <- grid.grabExpr(draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
-                                      heatmap_legend_list = ht.list), 
-                                 vp = viewport(width = 0.8, height = 0.8) # Scale down overall
-                                 )
-    
-  } else {
-    suppressMessages(draw(ht, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
+    suppressMessages(draw(hh, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
          heatmap_legend_list = ht.list))
     
-    rendered_ht <- grid.grabExpr(draw(ht, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
-                                      heatmap_legend_list = ht.list), 
-                                 vp = viewport(width = 0.8, height = 0.8) # Scale down overall
-    )
+    # This actually works ==== 
+    # decorate_annotation("FINAL_SUBTYPE", {
+    #   grid.text("Gender", x = unit(-2, "mm"), just = "right")
+    # })
+    # decorate_annotation("DNA_SUBTYPE", {
+    #   grid.text("DNA", x = unit(-2, "mm"), just = "right")
+    # })
+    
+  } else {  # ALL is this
+    suppressMessages(draw(hh, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
+         heatmap_legend_list = ht.list))
   }
   
   dev.off()
+  
+  #=========================================
+  # Return specs so u can draw outside ----
+  #=========================================
+  
+  draw.specs <- list(LABS= LABS,
+                     heatmap_legend_side= heatmap.legend.side,
+                     annotation_legend_side= annot.legend.side,
+                     annotation_legend_list= lgd_list,
+                     heatmap_legend_list= ht.list)
+  
+  #=========================================
+  # Get final sample and gene order ----
+  #=========================================
   
   if (!is.null(split.cols.by)){
     cat(paste("\n*** NOTE ***You can not get the final ordered list of samples (column_order) if you have chosen to split the columns by RESPONSE.\n 
@@ -937,32 +984,31 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     final.sample_order <- colnames(M)[column_order(ht)]
     final.row_order <- rownames(M)
   }
-  
-  
-  
-  ###############################################################################
+
+  #########################################################################################
   # === if automatic clustering is done, you can use the codes below 
   # ==== to decipher the exact order of clustered samples (add these to the calling code)
-  # ==============================================================================
+  # =======================================================================================
   # col.list <- column_order(ht)
   # htnames <- names(column_order(ht))
   # col.orders <- col.list[[htnames[2]]]
   # sample_order <- colnames(M)[col.orders]
-  # =============================================================================
+  # =======================================================================================
   
   # == ideas for future dev. 
   # draw(ht, padding = unit(c(40, 40), "mm")) 
   
   # == ideas for future dev. 
   # decorate_annotation("RESPONSE", {grid.text("value", unit(-2, "mm"), just = "right")})
-  ###############################################################################
+  #########################################################################################
   
   cat(paste("\n\nThe file is saved at",saveFile.2,"\n"))
   
-  return(list(ht.obj = ht, annotation_legend_list= lgd_list, heatmap_legend_list= ht.list,
+  return(list(ht.obj = hh, 
               onco.samples= final.sample_order,
               onco.genes= final.row_order,
               Fig.Path = saveFile.2,
-              rendered_ht= rendered_ht))
+              # rendered_ht= rendered_ht,
+              draw.specs = draw.specs))
   
 }

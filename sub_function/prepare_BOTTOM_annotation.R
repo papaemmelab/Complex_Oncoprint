@@ -34,15 +34,32 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
     ## Sort the df of bottom annotation according to the original simple.ht sample order   ====
     ##=========================================================================================
   
-    banner.name <- c(banner.name, c("CNV.WGS.CNVKIT.RHO", "RNA.EE"))
-    df <- df %>% dplyr::select(all_of(c("TARGET_NAME", toupper(banner.name))))
-    
+    if (show.ALL) {
+      banner.name <- c(banner.name, c("CNV.WGS.CNVKIT.RHO", "RNA.EE"))
+      df <- df %>% dplyr::select(all_of(unique(c("TARGET_NAME", toupper(banner.name)))))
+    } else if (show.MPN) {
+      banner.name <- c(banner.name, c("COMPLEX.KARYOTYPE"))
+      df <- df %>% dplyr::select(all_of(unique(c("TARGET_NAME", toupper(banner.name)))))
+    } else {
+      df <- df %>% dplyr::select(all_of(c("TARGET_NAME", toupper(banner.name))))
+    }
+   
     rownames(df) <- df$TARGET_NAME
     # df<-df[new.column_order,]
     rownames(df) <- NULL
     df$TARGET_NAME <- NULL
     
+    colnames(df)[colnames(df) == 'INDIVIDUAL.ID'] <- 'Patient.ID'
+    names(list.my.cols)[names(list.my.cols) == 'INDIVIDUAL.ID'] <- 'Patient.ID'
     
+    if (!(show.individuals)){
+      df$INDIVIDUAL.ID <- NULL
+    }
+    
+    # colnames(df) <- str_to_title(colnames(df)) 
+    # names(list.my.cols) <- str_to_title(names(list.my.cols))
+    
+    ########################################################
     # if (!is.null(response.order)){
     #   df$RESPONSE <- factor(df$RESPONSE, levels= response.order)
     # }   
@@ -52,26 +69,10 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
     ########################################################
     #### Define Bottom Annotation obj (e.g., RESPONSE) ====
     ########################################################
-    
-    if (!(show.individuals)){
-      df$INDIVIDUAL.ID <- NULL
-    }
-    
-    colnames(df)[colnames(df) == 'INDIVIDUAL.ID'] <- 'Patient.ID'
-    names(list.my.cols)[names(list.my.cols) == 'INDIVIDUAL.ID'] <- 'Patient.ID'
-    
-    # colnames(df) <- str_to_title(colnames(df)) 
-    # names(list.my.cols) <- str_to_title(names(list.my.cols))
-    
-    if (!(show.ALL)){
-      df <- df %>% dplyr::select(all_of(c("TARGET_NAME", toupper(banner.name))))
-      
-      rownames(df) <- df$TARGET_NAME
-      # df<-df[new.column_order,]
-      rownames(df) <- NULL
-      df$TARGET_NAME <- NULL
-      
-      h2 = HeatmapAnnotation(df = df , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
+
+    if (!show.ALL){
+
+      h2 = HeatmapAnnotation(df = df %>% dplyr::select(all_of(banner.name)), name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
                              col = list.my.cols,
                              na_col = "grey",
                              simple_anno_size = unit(ribbon.size, "cm"), # size of the ribbon
@@ -110,28 +111,30 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
       
     } else if (show.ALL) {
       
-      col_fun = colorRamp2(c(0, 50, 100), c("blue", MN[4], "#af4f2f"))
-      
-      these.cols <- c(all_of(toupper(banner.name)),"CNV.WGS.CNVKIT.RHO","RNA.EE")
+      col_fun = colorRamp2(
+        c(0, 60, 100),                 # shifted midpoint from 50 → 60
+        c(DM[9], MN[4], "#cc6c4a")     # softened darkest color (previously "#af4f2f")
+      ) # DM[9] is unclassified color
       
       list.my.cols$CNV.WGS.CNVKIT.RHO <- col_fun
       list.my.cols$RNA.EE <- col_fun
       
       colnames(df) <- toupper(colnames(df))
       
-      h2 = HeatmapAnnotation(df = df %>% dplyr::select(all_of(these.cols)) , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
+      h2 = HeatmapAnnotation(df = df %>% dplyr::select(all_of(toupper(banner.name))) , name= "TEST", #df = data.frame(PATIENTS = pts), col= list(PATIENTS = col.assign), 
                              col = list.my.cols,
                              na_col = "white", # Set missing values to white
                              simple_anno_size = unit(ribbon.size, "cm"), # size of the ribbon
                              annotation_height =c(20,20), # this controls the height of the response/etc annotation that is added to the columns. However, in order to use mutiple features (e.g., response/celltype/etc) you have to use c(20,20,..) otherwise this generates error
-                             # gap = unit(c(5,5), "mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
-                             gap = unit(rep(5,ncol(df)),"mm"),
+                             gap = unit(rep(5,ncol(df)),"mm"), # this controls the gap between multiple annotation heatbars (for example, the space btw response and patient.id bars)
                              
                              show_annotation_name= rep(TRUE,ncol(df)),
                              #show_annotation_name= show.annot.legend, 
+                             # annotation_label = toupper(banner.name),
+                             annotation_label = gsub("CNV.WGS.CNVKIT.RHO", "WGS.RHO", banner.name, ignore.case = TRUE),
                              
                              # show_legend = as.logical(show.annot.legend),
-                             show_legend = c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE),
+                             show_legend = c(FALSE, TRUE, FALSE, FALSE, TRUE, TRUE),
                              
                              annotation_name_offset = unit(20, "mm"),
                              
@@ -139,9 +142,7 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
                              
                              annotation_name_gp= gpar(fontsize = legend.title.font, fontface= "bold", col="blue"),
                              
-                             
-                             annotation_legend_param = list(#title = legend.tit.df,
-                               CNV.WGS.CNVKIT.RHO = list(title = "HOOOOPOOOO", title_gp = gpar(fontsize = 12)), # Modify legend for "Group" title
+                             annotation_legend_param = list(WGS.RHO.RNA = list(title = "HOOOOPOOOO", title_gp = gpar(fontsize = 12)), # Modify legend for "Group" title CNV.WGS.CNVKIT.RHO
                                
                                                              # CNV.WGS.CNVKIT.RHO = list(title = "WGS.Purity/RNA.EE"),
                                                              title_gp = gpar(fontsize = legend.title.font, fontface="bold"),
@@ -152,10 +153,9 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
                                                              grid_width= unit(1, "cm"),
                                                              nrow= num.rows.annot.lgd,
                                                              legend_height = unit(5, "cm"),
-                               legend_direction = "horizontal"
-                                                             
-                             )
-                               
+                                                             legend_direction = "horizontal"
+                                                            )
+                     
       )
 
     } 
