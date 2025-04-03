@@ -246,7 +246,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   source(file.path("./sub_function/initialize_data.R"))
   Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, min.freq,
                                sec.1.label=  sec.1.label , sec.2.label= sec.2.label, sec.3.label= sec.3.label , 
-                               lookup.table, REQ.cols, save.path, my.params)
+                               lookup.table, save.path, save.name= save.name)
   
   saveFile.1 <-  Init.List$saveFile.1
   saveFile.2 <-  Init.List$saveFile.2
@@ -272,7 +272,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   valid.effects <- tolower(rename_IDs$valid.effects)
   
   source(file.path("./sub_function/make_uniform_EFFECT_values.R"))
-  data <- make_uniform_EFFECT_values(data, valid.effects)
+  data <- make_uniform_EFFECT_values(data) 
   
   ###############################################################
   # == Prepare the Heatmap rows and columns  ====
@@ -292,7 +292,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ##############################################################
   
   source(file.path("./sub_function/prepare_fill_M.R"))
-  M.List <- prepare_fill_M(data, SAMPLES, GENES, lookup.table, rem.empty, gene.list)
+  M.List <- prepare_fill_M(data, SAMPLES$TARGET_NAME, GENES$genes, remove.empty.cols = rem.empty)
   
   M <- M.List$M
   gene.order <- M.List$gene.order
@@ -608,12 +608,19 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     my.title <- NULL    
   }
   
+  ###############################################################
+  # == Set Col/sample order  ==== 
+  ##############################################################
+  
   if (is.null(patients.order)){
     column_order = NULL
   } else {
     column_order= as.character(patients.order)
   }
   
+  ###############################################################
+  # == Set Row (muts/cnvs/svs) order  ==== 
+  ##############################################################
   
   # Set default orders from dataframes if specific orders are not provided
   muts.order.new <- if (is.null(muts.order)) as.character(unique(muts$GENE)) else muts.order
@@ -630,11 +637,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ###############################################################
   # == Generate Simple.ONCOPRINT ==== 
   ##############################################################
+  
   cat(paste0("\nGenerating simple oncoprint...\n"))
   
   num.my.lgd.rows <- num.rows.heatmap.lgd 
-  
-  
   
   source(file.path("./sub_function/draw_basic_oncoprint.R"))
   
@@ -671,12 +677,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # If no added RESPONSE/ANNOTATIONBAR/etc was selected, 
   #  but wanted show.sample.names=FASLE repeat the basic 
   #  heatmap plot, but with FALSE option.
-  ##======================================================
-  ##===============================================================================
+  ##=================================================================================
   ## *** IMPORTANT: Get the sample.order of simple.ht to sort the annotation, UNLESS
   ##                the user has strict patient order in input
-  ##===============================================================================
-  cat(paste0("\nFetch the order of samples (cols) from simple.ht...\n"))
+  ##=================================================================================
   
   if (is.null(patients.order)){
     new.column_order <- colnames(M)[column_order(simple.ht)] #this is the order of the simple oncoprint with basic clustering
@@ -687,118 +691,34 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   # my.temp.column_order <- colnames(simple.ht@matrix)
   
+  ###############################################################
+  # == Prepare Heatmap Annotation/Aesthetics ==== 
+  ##############################################################
+  
+  source(file.path("./sub_function/prepare_COMPLEX_aes.R"))
+  
+  complex.Annot <- prepare_COMPLEX_aes(data, M, highlight.events, df, list.my.cols, 
+                                  show.multis, show.another.banner, show.response, show.individuals,
+                                  legend.title.font, legend.label.font, 
+                                  annot.title.side, 
+                                  num.rows.annot.lgd, show.annot.legend, 
+                                  ribbon.size, banner.name, 
+                                  rows.font,
+                                  split.cols.by,
+                                  show.ALL= show.ALL,
+                                  show.MPN = show.MPN)
+    
   #################################################################################################
   #################################################################################################
   #### Start Complex plot. ====
   #################################################################################################
   #################################################################################################
   
-  if (show.multis){
-    cat(paste0("\nStart multi.hit Oncoprint preparation...\n"))
-    
-    multi.hits <- data %>% dplyr::group_by(TARGET_NAME, GENE) %>% dplyr::mutate(N= n()) %>% dplyr::filter(N>1) %>% dplyr::select(TARGET_NAME, GENE) %>% unique()
-    
-    multi.hits <- data.frame(multi.hits)
-    
-    if (nrow(multi.hits)>0){
-      for (k in 1: nrow(multi.hits)){
-        M[as.character(multi.hits$GENE[k]), as.character(multi.hits$TARGET_NAME[k])] <- paste0(M[as.character(multi.hits$GENE[k]), as.character(multi.hits$TARGET_NAME[k])], "multi_hit",";", collapse = "")
-      }
-    }
-  }
-  
-  #############################
-  #### BOTTOM ANNOTATION ====
-  #############################
-  
-  if ((show.another.banner) | (show.response) | (show.individuals) ) {
-    
-    if (!show.individuals){
-        df$INDIVIDUAL.ID <- NULL
-    }
-    
-    source(file.path("./sub_function/prepare_BOTTOM_annotation.R"))
-    BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,
-                                          legend.title.font,legend.label.font,
-                                          annot.title.side, num.rows.annot.lgd, show.annot.legend, 
-                                          ribbon.size, banner.name= banner.name, 
-                                          show.individuals= show.individuals,
-                                          show.ALL= show.ALL,
-                                          show.MPN= show.MPN)
-    
-    h2 <- BotAnnot$h2
-    df <- BotAnnot$df.updated
-    list.my.cols <- BotAnnot$list.my.cols.updated
-    
-  } else  {
-    h2 = NULL # for example, you do not have any added bottom annotation but still like to see multis
-    
-  }
-  
   # samples.order.mod <- colnames(simple.ht@matrix)
-  
   samples.order.mod <- new.column_order
   
-  ###############################################################
-  ###############################################################
-  # == Generate COMPLEX.ONCOPRINT ==== 
-  ##############################################################
   
   cat(paste0("\nGenerate Final COMPLEX oncoprint ...\n"))
-  
-  
-  if (!is.null(split.cols.by)){
-    
-    split.cols.by = toupper(split.cols.by)
-    
-    # a complicated select based on dynamic col-name that is passed in "split.cols.by"
-    # first select the dynamic col from lookup and then choose the order based on the sample-names in M.
-    # The final class must be numeric for proper depiction
-    
-    split.cols.order <-  as.numeric(as.factor(lookup.table[[split.cols.by]][match(colnames(M), lookup.table$TARGET_NAME)]))
-    
-    # split.cols.order <- as.numeric(lookup.table$RESPONSE.ELN.R1[match(colnames(M), lookup.table$TARGET_NAME)])
-  } else {
-    split.cols.order <- NULL
-  }
-  
-  
-  # split.cols.order <- as.numeric(lookup.table$RESPONSE.ELN.R1[match(colnames(M), lookup.table$TARGET_NAME)])
-  
-  # Rows to highlight
-  if (!is.null(highlight.events)){
-    
-    myRows <- intersect(highlight.events, rownames(M))
-    
-    # Set stylings for row names and make our selected rows unique
-    row_idx <- which(rownames(M) %in% myRows)
-    fontsizes <- rep(rows.font, nrow(M))
-    fontfaces <- rep("bold", nrow(M))
-    fontcolors <- rep("black", nrow(M))
-    
-    fontsizes[row_idx] <- rows.font+2
-    fontcolors[row_idx] <- "#175f5d" #FH[7]
-
-    # Set up fill colors for rows
-    fill.colors <- rep("white", nrow(M)) # Default color
-    fill.colors[row_idx] <- "#E8F5E9"        # Highlight color
-
-  } else {
-    fontsizes <- rows.font
-    fontfaces <- "bold"
-    fontcolors <- "black"
-    fill.colors <- "white"
-  }
-
-  # Create text annotation object for displaying row names
-  rowAnno <- rowAnnotation(rows = anno_text(rownames(M), gp = gpar(fontsize = fontsizes, fontface = fontfaces, col = fontcolors, fill= fill.colors)))
-  
-  # col_hclust = hclust(dist(matrix(rnorm(nrow(M)*ncol(M)), ncol(M))))
-  
-  if (show.MPN){
-    names(h2) <- "Complex karyotype Status"
-  }
-  
   
   ht <- oncoPrint(M, get_type = function(x) strsplit(x, ";")[[1]],
                   
@@ -817,17 +737,17 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   remove_empty_columns = rem.empty,
                   
                   show_column_names = show.sample.names,
-                  
-                  column_split= split.cols.order, # this supposed to add a vertical gap between columns based on a selected characteristic of samples (SPLIT col in lookup-table)
-                  
+
                   column_gap = unit(5, "mm"),
                   
                   # === Gene barplots on the left ====
                   
-                  bottom_annotation= h2,
+                  column_split= complex.Annot$split.cols.order, # this supposed to add a vertical gap between columns based on a selected characteristic of samples (SPLIT col in lookup-table)
+                  
+                  bottom_annotation= complex.Annot$BotAnnot,
                   top_annotation = h1,
                   
-                  left_annotation= rowAnno,
+                  left_annotation= complex.Annot$rowAnno,
                   
                   right_annotation = rowAnnotation(row_bar = anno_oncoprint_barplot(type= NULL,
                                                                                     border= show.border,
@@ -879,10 +799,6 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                               legend_height = unit(10, "cm"))
   ) 
   
-  
-  
-  
-  
   #======================================================
   # Draw  ====
   #======================================================
@@ -891,55 +807,22 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # ht.2
   # draw(ht_list, row_split = sample(c("a", "b"), nrow(mat), replace = TRUE))
   
+  ############################################
+  # Cibersort plot ----
+  ############################################
   
-  #==================================================
-  # If you have a bottom heatmap (heat.2.df)  ----
-  #==================================================
+  source(file.path("./sub_function/prepare_TOP_annotation.R"))
   
   if (!is.null(added.heatmap)){
     
-    source(file.path("./sub_function/create_lineage_heatmaps.R"))
-    
-    # == what cols are missing from RNA deconv that are in oncoplot M
-    
-    missing_cols <- setdiff(colnames(M), colnames(added.heatmap$cell_state_zscores))
-    
-    # == Add NA to deconv for missing
-    
-    cell.state.mod <- added.heatmap$cell_state_zscores %>% bind_cols(data.frame(matrix(NA, nrow = nrow(added.heatmap$cell_state_zscores), ncol = length(missing_cols), 
-                                                            dimnames = list(NULL, missing_cols))))
-    rownames(cell.state.mod) <- rownames(added.heatmap$cell_state_zscores)
-    
-    dev.index.mod <- added.heatmap$B_dev_index %>% bind_cols(data.frame(matrix(NA, nrow = nrow(added.heatmap$B_dev_index), ncol = length(missing_cols), 
-                                   dimnames = list(NULL, missing_cols))))
-    
-    ling.index.mod <- added.heatmap$lineage_index %>% bind_cols(data.frame(matrix(NA, nrow = nrow(added.heatmap$lineage_index), ncol = length(missing_cols), 
-                                                            dimnames = list(NULL, missing_cols))))
-    # == Now sort according to the M sample order
-    
-    added.heatmap$cell.state <- cell.state.mod[,colnames(M)]
-    added.heatmap$dev.index  <- dev.index.mod[,colnames(M)]
-    added.heatmap$ling.index <- ling.index.mod[,colnames(M)]
-    
-    # == Run adding extra heatmaps
-    
-    cibersort.heatmaps <- create_lineage_heatmaps (heat.2.df= added.heatmap, 
-                                                # heat.2.name= c("Cell-population z-score","Scaled Index"),
-                                                legend.title.font = legend.title.font,
-                                                legend.label.font = legend.label.font,
-                                                annot.title.side = annot.title.side,
-                                                rows.fs= rows.font,
-                                                cols.fs= 10, 
-                                                show.sample.names = show.sample.names )
-
-    hh <- ht %v%  cibersort.heatmaps$heat.1 %v% cibersort.heatmaps$heat.2 %v% cibersort.heatmaps$heat.3 #cibersort.heatmaps$heat.1 %v%
-    
+    source(file.path("./sub_function/add_cibersort_panel.R"))
+    hh <- add_cibersort_panel()
     } 
   else {hh <- ht} #bottom.heatmap.list$heat.1 %v%
     
-  #============================================
-  # Start png and draw ----
-  #============================================
+  ###############################
+  # Generate plots ----
+  ###############################
   
   png(saveFile.2, units="in", width = w / 2, height = h / 2, res = 300)
   
@@ -962,9 +845,13 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   dev.off()
   
-  #=========================================
+  cat(paste("\n *** Final oncoprint saved at: ",saveFile.2))
+  
+  htShiny(hh, width1 = 1000)
+  
+  ############################################
   # Return specs so u can draw outside ----
-  #=========================================
+  ############################################
   
   draw.specs <- list(LABS= LABS,
                      heatmap_legend_side= heatmap.legend.side,
@@ -972,9 +859,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                      annotation_legend_list= lgd_list,
                      heatmap_legend_list= ht.list)
   
-  #=========================================
-  # Get final sample and gene order ----
-  #=========================================
+  ############################################
+  # Report final sample and gene/alt order ----
+  ############################################
   
   if (!is.null(split.cols.by)){
     cat(paste("\n*** NOTE ***You can not get the final ordered list of samples (column_order) if you have chosen to split the columns by RESPONSE.\n 

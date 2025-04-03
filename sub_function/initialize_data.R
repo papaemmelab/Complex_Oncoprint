@@ -1,8 +1,10 @@
-initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, min.freq, lookup.table, sec.1.label= sec.1.label, sec.2.label=NULL, sec.3.label=NULL, REQ.cols, save.path, params){
+initialize_data <- function(data, muts, cnvs= NULL, svs= NULL, muts.order= NULL, cnvs.order= NULL, svs.order= NULL, min.freq= 1, 
+                            lookup.table, sec.1.label= sec.1.label, sec.2.label=NULL, sec.3.label=NULL, save.path, save.name= NULL){
   
   ###############################################
-  save.name = eval(params$save.name)
+  # save.name = eval(params$save.name)
   
+  setwd("~/Documents/Complex_Oncoprint/")
 
   if (is.null(save.name)){
     saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,".png"))
