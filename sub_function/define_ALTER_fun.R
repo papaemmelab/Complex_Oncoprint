@@ -1,6 +1,6 @@
-define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
-  
-  alter_fun = list(
+define_ALTER_fun <-  function(list.ht.colors, multis.dot.size, multi.col= "black", pink.multi= TRUE){
+
+    alter_fun = list(
     background = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.52, "mm"), h-unit(0.52, "mm"), gp = gpar(fill = "#f0f0f0", col = NA)) # alpha=0.5
     },
@@ -123,27 +123,65 @@ define_ALTER_fun <-  function(list.ht.colors, multis.dot.size){
     karyotypic_abnormal = function(x, y, w, h) {
       grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = "salmon"  , col = NA))
     },
+    iso = function(x, y, w, h) {
+      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list.ht.colors$mut.colors[["iso"]][1]  , col = NA))
+    },
+    # multi_hit = if (pink.multi) {
+    #   function(x, y, w, h) {
+    #     # Pink background box
+    #     grid.rect(
+    #       x = x, y = y,
+    #       w - unit(0.32, "mm"), h - unit(0.32, "mm"),
+    #       gp = gpar(fill = "#e2a0e8", col = NA)  # optional pink color
+    #     )
+    #     
+    #     # Circle overlay
+    #     grid.points(
+    #       x, y,
+    #       pch = 21,
+    #       size = unit(multis.dot.size, "cm"),
+    #       gp = gpar(col = "black", fill = "#FAEFD1")
+    #     )
+    #   }
+    # } else {
+    #   function(x, y, w, h) {
+    #     # Only circle
+    #     grid.points(
+    #       x, y,
+    #       pch = 21,
+    #       size = unit(multis.dot.size, "cm"),
+    #       gp = gpar(col = "black", fill = "#FAEFD1")
+    #     )
+    #   }
+    # }
+    # )
     # multi_hit = function(x, y, w, h) {
     #   grid.points(x, y, pch = 21, size = unit(multis.dot.size, "cm"), gp = gpar(col = "black", fill= "#FAEFD1"))
     # }
     # 
-    multi_hit = function(x, y, w, h) {
-      # Draw a colored box as background
-      grid.rect(
-        x = x, y = y,
-        w-unit(0.32, "mm"), h-unit(0.32, "mm"),
-        gp = gpar(fill = "#e2a0e8", col = NA) #RD[10]
-      )
-
-      # Overlay the point on top of the colored box
-      grid.points(
-        x, y,
-        pch = 21,
-        size = unit(multis.dot.size, "cm"),
-        gp = gpar(col = "black", fill = "#FAEFD1")
-      )
-    }
-  )
+    # Pink circle multi-hits
+    
+    
+    # multi_hit = function(x, y, w, h) {
+    #   # Draw a colored box as background
+    #   grid.rect(
+    #     x = x, y = y,
+    #     w-unit(0.32, "mm"), h-unit(0.32, "mm"),
+    #     gp = gpar(fill = "#e2a0e8", col = NA) #RD[10]
+    #   )
+    # 
+    #   # Overlay the point on top of the colored box
+    #   grid.points(
+    #     x, y,
+    #     pch = 21,
+    #     size = unit(multis.dot.size, "cm"),
+    #     gp = gpar(col = "black", fill = "#FAEFD1")
+    #   )
+    # }
+    
+    multi_hit = function(x, y, w, h) grid.points(x, y, pch = 16, gp = gpar(col = multi.col)) 
+    
+    )
 
 return(alter_fun)
 }

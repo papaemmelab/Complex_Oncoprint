@@ -11,8 +11,8 @@ initialize_data <- function(data, muts, cnvs= NULL, svs= NULL, muts.order= NULL,
     saveFile.2 <- file.path(save.path,paste0("Oncoprint_minFreq_",min.freq,".png"))
     
   } else {
-    saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",save.name,"_",min.freq,".png"))
-    saveFile.2 <- file.path(save.path,paste0("Oncoprint_minFreq_",save.name,"_",min.freq,".png"))
+    saveFile.1 <- file.path(save.path,"TEMP",paste0(save.name,"_Heatmap_TEMP_minFreq_", min.freq,".png"))
+    saveFile.2 <- file.path(save.path,paste0(save.name,"_Oncoprint_minFreq_",min.freq,".png"))
     
   }
   
@@ -28,11 +28,11 @@ initialize_data <- function(data, muts, cnvs= NULL, svs= NULL, muts.order= NULL,
                    legend.label.font= eval(substitute(legend.label.font), parent.frame())
   )
   
-
+  # browser()
   ###############################################################
   # == Add MUTATIONS  ====
   ##############################################################
-  
+
   source(file.path("./sub_function/sort_variants.R"))
   
   A <- sort_variants(muts, muts.order,group.label= sec.1.label, variants.class= "MUTs")

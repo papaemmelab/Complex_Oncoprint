@@ -1,6 +1,6 @@
 generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # ******* define variants DFs [mut is required]
                                         
-                                           added.heatmap = NULL,
+                                           cell.type.heatmap = NULL,
                                            
                                            cnvs.order= NULL, svs.order= NULL, muts.order= NULL, patients.order= NULL,   # ******* allows pre-defined orders
                                         
@@ -28,9 +28,18 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            lookup.table= NULL, # ******* pass lookup.table 
                                            
-                                           show.sample.names = TRUE, show.border= FALSE, show.multis= FALSE, rem.empty= TRUE, # ******* what params to show in legend?
+                                           show.sample.names = TRUE, show.border= FALSE, 
+                                        
+                                           show.multis= TRUE, # adds the dots to multi hits with multis.dot.size
+                                           multi.col = "black",
+                                        
+                                           highlight.multis.cell = FALSE, # in addition to the dot also highlights the multis cells (currently set to pink, can change in define_ALTER_fun)
+                                        
+                                           rem.empty= TRUE, # ******* what params to show in legend?
                                            
                                            split.cols.by = NULL, 
+                                        
+                                           column_split= NULL,
                                            
                                            heatmap.legend.side= "right",
                                            
@@ -38,9 +47,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            num.rows.heatmap.lgd= NULL, # ******* HEATMAP.legend 
                                            
-                                           annot.legend.side= "bottom", 
+                                           annot.legend.side= "bottom",  
                                            
-                                           annot.title.side= "topleft", # this can only be topleft/topcenter/ etc. otherwise error
+                                           annot.title.side= "topleft", # *****annot.title.side param can only be topleft/ topcenter / leftcenter / lefttop / leftcenter-rot/ lefttop-rot
                                            
                                            num.rows.annot.lgd= NULL,  # ******* ANNOT.legend 
                                            
@@ -66,7 +75,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            right.w= 13, top.w= 8 , ribbon.size= 1, w=50, h=50,  #**** Sizes of barplots and fig 
                                            
-                                           axis.side= "left"){
+                                           axis.side= "left",
+                                           top.annot.axis.side= "left",
+                                           top.annotation_name_side = "left",
+                                        
+                                           banner.label.col= "#5b859e",
+                                           legend.height = 20,
+                                           na_col = "darkgrey"
+                                        ){
   
   ## must be main branch
   
@@ -143,6 +159,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #    See also example_Heatmap, test_required_fields.
   #==================================================================================
   
+  # browser()
+  
   suppressMessages(library("argparse", quietly = TRUE))
   
   if(!is.data.frame(muts)) {muts= as.data.frame(muts)}
@@ -151,12 +169,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   if (is.null(save.path)){
     save.path <- getwd()
-    cat(paste0("\n ***** NOTE: You did not pass 'save.path' param when calling the function. The default path used to save the generated oncoprints is --> ", save.path,"\n\n"))
+    message(paste0("\n ***** NOTE: You did not pass 'save.path' param when calling the function. The default path used to save the generated oncoprints is --> ", save.path,"\n\n"))
   }
   
   dir.create(file.path(save.path,"TEMP"), showWarnings=FALSE)
   
   my.params = as.list(match.call(expand.dots=FALSE))
+  
+  RD <- met.brewer("Redon", type = "discrete")
   
   ###############################################################
   # == Test Required cols and contents  ====
@@ -175,11 +195,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   REQ.cols <- rename_IDs$required.cols.lookup
   
   # cols.font <- as.numeric(cols.font)
+  # browser()
   
   ############################################################
   # == Find a subset of Mutations that have >= min.freq variants
   ############################################################
-  
+
   highlight.genes <- setdiff(highlight.events, c(svs$GENE, cnvs$GENE))
   
   include.these.genes <- setdiff(c(include.these.events, highlight.genes), c(svs$GENE, cnvs$GENE))
@@ -189,7 +210,6 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   } else {
     muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n()) %>% filter(gene.freq>= min.freq) 
   }
-  
   
   muts <- as.data.frame(muts)
   
@@ -242,7 +262,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ##########################################
   # Prepare data for complex heatmap  ====
   ##########################################
-
+  
   source(file.path("./sub_function/initialize_data.R"))
   Init.List <- initialize_data(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, min.freq,
                                sec.1.label=  sec.1.label , sec.2.label= sec.2.label, sec.3.label= sec.3.label , 
@@ -257,6 +277,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   gene.list= Init.List$gene.list
   
+  # browser()
   ####################################
   # Load colors  ====
   ####################################
@@ -266,9 +287,15 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   source(file.path("./sub_function/heatmap_colors.R"))
   list.ht.colors <- heatmap_colors()
   
+  # test colors if not shown properly
+  #----------------------------------------------
+  # source("./sub_function/color_alpha_test.R")
+  # color_alpha_test(list.my.cols$response.colors)
+  
   ###############################################################
   # == Adjust EFFECT to uniform texts  ====
   ##############################################################
+  
   valid.effects <- tolower(rename_IDs$valid.effects)
   
   source(file.path("./sub_function/make_uniform_EFFECT_values.R"))
@@ -292,7 +319,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ##############################################################
   
   source(file.path("./sub_function/prepare_fill_M.R"))
-  M.List <- prepare_fill_M(data, SAMPLES$TARGET_NAME, GENES$genes, remove.empty.cols = rem.empty)
+  M.List <- prepare_fill_M(data, SAMPLES$TARGET_NAME, GENES$genes, remove.empty.cols = rem.empty, show.multis = show.multis)
   
   M <- M.List$M
   gene.order <- M.List$gene.order
@@ -305,7 +332,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   cat(paste0("\nLoading Default ALTER func...\n"))
   
   source(file.path("./sub_function/define_ALTER_fun.R"))
-  alter_fun <- define_ALTER_fun(list.ht.colors, multis.dot.size)
+  alter_fun <- define_ALTER_fun(list.ht.colors, multis.dot.size, multi.col= multi.col, pink.multi = highlight.multis.cell)
   
   ###############################################################
   # == Define Labels for MUT/CNV/... segments  =====
@@ -321,6 +348,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                   "del", "loss",
                                   "loh",  "cnloh",
                                   "inv",   "INV",   
+                                  "iso", "ISO",
                                   "fusion", "TRA",  
                                   "trans", "other_svs","tdup","dup","rearr",
                                   "add","der",
@@ -334,10 +362,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
      
                                "complex", "Complex karyotype", "truncating",
                                "Unknown",   
-                               "Amplification", "gain (CNV)",    
-                               "Deletion", "loss (CNV)",
+                               "Amplification", "GAIN",    
+                               "Deletion", "LOSS",
                                "cnLOH", "cnLOH",
                                "Inversion", "INV",
+                               "ISO","ISO",
                                "FUS", "TRA",
                                "TRA","Other SVs","Tandem duplication", "Duplication","Rearrangement",
                                "Add.","Der.",
@@ -349,16 +378,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   labels = EFFECT.all[[2]][EFFECT.all[[1]] %in% data$EFFECT]
   )
   
-  if (show.MPN){
-    
-  COMPLEX.KARYOTYPE.STATUS <- list (variants = c("complex", "not complex", "not available"),
-                  labels = c("complex", "not complex", "not available"))
-  }
-  
-  # LABS <- factor(gene.list$LAB, levels=c("Substitusions/Indels","Cytogenetics","CNVs", "SVs"))
-  
-  #  LABS <- factor(gene.list$LAB, levels=c("SNVs/INDELs","CNV", "FUS/INV"))
-  
+
   LABS <- factor(gene.list$LAB, levels=c(sec.1.label, sec.2.label, sec.3.label))
   
   #################################
@@ -403,26 +423,14 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #============================
   
   if (show.response){
+    
     cat(paste0("\nPrepare RESPONSE...\n"))
     
     resp.col <- list.ht.colors$response.colors[names(list.ht.colors$response.colors) %in% unique(lookup.table$RESPONSE)]
     
     list.my.cols$RESPONSE <- resp.col
     
-    show.annot.legend <- c(show.annot.legend, "TRUE")
-    
-  } 
-  
-  #============================
-  # if showing RESPONSE ====  
-  #============================
-  
-  if (show.MPN){
-    cat(paste0("\nPrepare RESPONSE...\n"))
-    
-    complex.col <- list.ht.colors$COMPLEX.KARYOTYPE[names(list.ht.colors$COMPLEX.KARYOTYPE) %in% unique(lookup.table$COMPLEX.KARYOTYPE.STATUS)]
-    
-    list.my.cols$COMPLEX.KARYOTYPE.STATUS <- complex.col
+    banner.name = unique(c("RESPONSE", banner.name))
     
     show.annot.legend <- c(show.annot.legend, "TRUE")
     
@@ -431,11 +439,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #============================
   # if showing NEW.BANNER ====   
   #============================
+  # browser()
   
   if (show.another.banner){
     
     if (show.ALL) {
-      
+      # browser()
       source(file.path("./sub_function/add_ALL_banners.R"))
       list.ALL.banners <- add_ALL_banners(list.my.cols, show.annot.legend, list.ht.colors, lookup.table)
       
@@ -453,6 +462,15 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
       show.annot.legend= BannerList$show.annot.legend
     }
 
+  }
+  
+  banner.name = toupper(banner.name)
+  
+  for (banner_name in banner.name) {
+    banner_name
+    if (banner_name %in% names(list.ht.colors)) {
+      list.my.cols[[banner_name]] <- list.ht.colors[[banner_name]]
+    }
   }
   
   ####################################
@@ -506,6 +524,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     names(indiv.col) <- unique(lookup.table$INDIVIDUAL.ID)
     list.my.cols$INDIVIDUAL.ID <- indiv.col
     
+    banner.name = unique(c(banner.name, "INDIVIDUAL.ID"))
+    
     show.annot.legend <- c(show.annot.legend, "TRUE")
     
     rm(n2)
@@ -515,7 +535,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # Sort lookup table with the same order of M cols (TARGET_NAMEs)
   ################################################################
   
-  if (!is.null(lookup.table)){
+    if (!is.null(lookup.table)){
     rownames(lookup.table) <- lookup.table$TARGET_NAME
     lookup.table <- lookup.table[colnames(M),]
   }
@@ -526,11 +546,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ###### This enforces to have at least ONE RIBBON + SURV.dots
   ###### update it in future if necessary
   #========================================================
+  # browser()
   
   source(file.path("./sub_function/prepare_TOP_annotation.R"))
 
   h1 <- prepare_TOP_annotation(list.colors, show.border, 
-                               axis.side,barplot.font, legend.title.font, 
+                               barplot.font, legend.title.font, 
                                top.w, 
                                
                                show.purity= show.purity, 
@@ -540,7 +561,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                show.MPN= show.MPN, 
                                show.ALL= show.ALL,
                                
-                               lookup.table= lookup.table)
+                               lookup.table= lookup.table,
+                               axis.side= axis.side,
+                               top.annot.axis.side= top.annot.axis.side,
+                               top.annotation_name_side = top.annotation_name_side,
+                               banner.label.col= banner.label.col)
   
   # col_fun = colorRamp2(c(0, 50, 100), c("blue", "white", "red"))
   # ha = HeatmapAnnotation(foo = purity.df %>% pull(CNV.WGS.CNVKIT.RHO), col = list(foo = col_fun))
@@ -568,6 +593,39 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   } else {
     lgd_list= NULL
   }
+  
+  # ###############################################################
+  # # == Create a legend for BLAST if show.MPN= TRUE ====  <<<< must be done here but make sure u use the same thresh
+  # ##############################################################
+  
+  blast_col <- c("<20"=RD[1], "≥20"=HK1[2])
+  blast_col <- add.alpha(blast_col, alpha = 0.6)
+  
+  # browser()
+  
+  if (show.blast|show.MPN) {
+    lgd_blast <- Legend(
+      labels = c("<20", "≥20"),
+      labels_gp = gpar(fontsize = legend.label.font),
+      title_gp  = gpar(fontsize = legend.title.font, fontface = "bold"),
+      title = "Blast",
+      title_position = "topleft",
+      type = "points",
+      pch  = c(16, 16),
+      size = unit(0.5, "cm"),
+      background = "white",   # soft white
+      nrow = 2,
+      grid_width  = unit(1, "cm"),
+      grid_height = unit(1, "cm"),
+      legend_gp = gpar(
+        col = c(blast_col[1], blast_col[2]),
+        fontsize = legend.label.font
+      )
+    )
+    
+    lgd_list <- c(lgd_list, list(lgd_blast))
+  }
+  
   ###############################################################
   # == Create a legend for multis if show.multis= TRUE ==== MUST BE AFTER h1
   ##############################################################
@@ -577,9 +635,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     ht.list = list(Legend(labels =  c(">1 variant"),
                           labels_gp = gpar(fontsize = legend.label.font),
                           type = "points",
-                          pch = 21,
+                          pch = 16, #21
                           size = unit(0.5, "cm"),
-                          legend_gp = gpar(col = "black", fill= "#FAEFD1", lwd= 1, fontsize = legend.label.font),
+                          legend_gp = gpar(col = multi.col, fill= multi.col, lwd= 1, fontsize = legend.label.font), #FAEFD1
                           background = NULL, grid_height = unit(1, "cm"),
                           grid_width = unit(1, "cm")))
   } else {
@@ -595,22 +653,24 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   cat(paste("\n **** You chose min.freq to filter all events = ", min.freq))
   Gene.Freq = min.freq
 
+  # browser()
   
   if (show.title){
     if (show.min.freq){
       # my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
-      my.title <- paste0(title.str," \nTotal Alterations: ", nrow(data),", Unique Events: ", length(unique(muts$GENE)),", Total Samples: ", ncol(M))
+      my.title <- paste0(title.str," \nTotal Alterations: ", nrow(data),", Unique Events: ", length(unique(muts$GENE)),", Total Samples: ", ncol(M),", # Min.Freq >= ",  Gene.Freq)
       
     } else{
       my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Top Genes = ",length(unique(muts$GENE)),"; # Samples (Top Category) =", ncol(M))
     }
   } else {
-    my.title <- NULL    
+    my.title <- title.str    
   }
   
   ###############################################################
   # == Set Col/sample order  ==== 
   ##############################################################
+  # browser()
   
   if (is.null(patients.order)){
     column_order = NULL
@@ -637,6 +697,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ###############################################################
   # == Generate Simple.ONCOPRINT ==== 
   ##############################################################
+
+  # browser()
   
   cat(paste0("\nGenerating simple oncoprint...\n"))
   
@@ -682,6 +744,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ##                the user has strict patient order in input
   ##=================================================================================
   
+  # browser()
+  
   if (is.null(patients.order)){
     new.column_order <- colnames(M)[column_order(simple.ht)] #this is the order of the simple oncoprint with basic clustering
     
@@ -689,38 +753,85 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     new.column_order <- patients.order
   }
   
+  M <- M[, new.column_order]
+  row.names(df) = df$TARGET_NAME
+  df <- df[new.column_order,]
   # my.temp.column_order <- colnames(simple.ht@matrix)
   
   ###############################################################
   # == Prepare Heatmap Annotation/Aesthetics ==== 
   ##############################################################
+  # browser()
   
   source(file.path("./sub_function/prepare_COMPLEX_aes.R"))
   
-  complex.Annot <- prepare_COMPLEX_aes(data, M, highlight.events, df, list.my.cols, 
-                                  show.multis, show.another.banner, show.response, show.individuals,
-                                  legend.title.font, legend.label.font, 
-                                  annot.title.side, 
-                                  num.rows.annot.lgd, show.annot.legend, 
-                                  ribbon.size, banner.name, 
-                                  rows.font,
-                                  split.cols.by,
-                                  show.ALL= show.ALL,
-                                  show.MPN = show.MPN)
+  complex.Annot <- prepare_COMPLEX_aes(data= data, M= M, highlight.events=highlight.events, 
+                                       df= df, 
+                                       list.my.cols= list.my.cols, 
+                                      show.multis= show.multis, 
+                                      show.another.banner= show.another.banner, 
+                                      show.response = show.response, 
+                                      show.individuals= show.individuals, 
+                                      show.individuals.legend= show.individuals.legend,
+                                      legend.title.font= legend.title.font, 
+                                      legend.label.font= legend.label.font, 
+                                      annot.title.side= annot.title.side, 
+                                      num.rows.annot.lgd= num.rows.annot.lgd, 
+                                      show.annot.legend= show.annot.legend, 
+                                      ribbon.size= ribbon.size, 
+                                      banner.name= banner.name, 
+                                      rows.font= rows.font,
+                                      split.cols.by= split.cols.by,
+                                      show.ALL= show.ALL,
+                                      show.MPN = show.MPN,
+                                      banner.label.col= banner.label.col,
+                                      legend.height = legend.height,
+                                      na_col = na_col)
     
   #################################################################################################
   #################################################################################################
   #### Start Complex plot. ====
   #################################################################################################
   #################################################################################################
+  # This works if multi hits are added as a label after initial set up however! I noticed it may not be good, so I moved it to M creation. You can change later if you want
+  # if (show.multis){
+  #   cat(paste0("\nStart multi.hit Oncoprint preparation...\n"))
+  #   
+  #   multi.hits <- data %>% dplyr::group_by(TARGET_NAME, GENE) %>% dplyr::mutate(N= n()) %>% dplyr::filter(N>1) %>% dplyr::select(TARGET_NAME, GENE) %>% unique()
+  #   
+  #   multi.hits <- data.frame(multi.hits)
+  #   
+  #   if (nrow(multi.hits) > 0) {
+  #     for (k in seq_len(nrow(multi.hits))) {
+  #       gene <- as.character(multi.hits$GENE[k])
+  #       sample <- as.character(multi.hits$TARGET_NAME[k])
+  #       val <- M[gene, sample]
+  #       
+  #       if (!grepl("biallelic", val)) {
+  #         M[gene, sample] <- if (nchar(val) > 0) paste0(val, ";multi_hit") else "multi_hit"
+  #       }
+  #     }
+  #   }
+  # }
   
   # samples.order.mod <- colnames(simple.ht@matrix)
-  samples.order.mod <- new.column_order
   
+  # browser()
+  
+  ###############################################################
+  # == If you have defined column_split ==== 
+  ##############################################################
+  
+  if (!is.null(column_split)){
+    column_split <- factor(column_split, levels = unique(column_split))
+  }
+  ###############################################################
   
   cat(paste0("\nGenerate Final COMPLEX oncoprint ...\n"))
   
   ht <- oncoPrint(M, get_type = function(x) strsplit(x, ";")[[1]],
+                  
+                  name= "oncoplot",
                   
                   # cluster_columns= col_hclust,
                   
@@ -728,7 +839,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   
                   #axis_gp = gpar(fontsize = 8, fontface="bold"), # obsolete param
                   
-                  column_order = samples.order.mod,
+                  column_order = new.column_order,
                   
                   row_order = row_order, #control the order of genes (rows)
                   
@@ -742,7 +853,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   
                   # === Gene barplots on the left ====
                   
-                  column_split= complex.Annot$split.cols.order, # this supposed to add a vertical gap between columns based on a selected characteristic of samples (SPLIT col in lookup-table)
+                  column_split= column_split, # this supposed to add a vertical gap between columns based on a selected characteristic of samples (SPLIT col in lookup-table)
+                  
+                  # row_gap = unit(5, "mm"),
                   
                   bottom_annotation= complex.Annot$BotAnnot,
                   top_annotation = h1,
@@ -778,10 +891,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                   column_names_gp = gpar(cex=1, col= "black", fontsize = cols.font, fontface="bold"), #default size = 18
                   column_names_max_height= unit(20,"cm") , # adjust this to control the name of samples (col names)
                   
-                  # === Percent ====
+                  # ===  Percent/Rows/Genes ====
                   pct_gp=gpar(fontsize = pct.font, fontface = "bold", col="black"), # specific control over percentage info on the left (add col="blue" to change colors)
                   row_names_gp = gpar(fontsize = rows.font, fontface="bold"), # gene-names and percent (if not prc_gp is defined above)
-                  row_title_gp = gpar(fontsize =rows.font+3, col="blue",fontface = "bold"),
+                  row_title_gp = gpar(fontsize =rows.font+3, col=RD[3],fontface = "bold"), #blue
                   
                   # === Legend ====
                   # heatmap_legend_param = gg_list # list of list does not work here!
@@ -813,21 +926,34 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   source(file.path("./sub_function/prepare_TOP_annotation.R"))
   
-  if (!is.null(added.heatmap)){
+  if (!is.null(cell.type.heatmap)){
     
     source(file.path("./sub_function/add_cibersort_panel.R"))
-    hh <- add_cibersort_panel()
+    
+    hh <- add_cibersort_panel(ht, M, cell.type.heatmap, 
+                              legend.title.font= legend.title.font,  legend.label.font= legend.label.font, rows.font= rows.font, 
+                              annot.title.side= annot.title.side, show.sample.names= show.sample.names)
     } 
   else {hh <- ht} #bottom.heatmap.list$heat.1 %v%
     
   ###############################
   # Generate plots ----
   ###############################
+  highlight_genes <- c("TP53", "SRSF2", "IDH2")
+  
+  # browser()
   
   png(saveFile.2, units="in", width = w / 2, height = h / 2, res = 300)
   
+  # saveFile.2 <- gsub("png", "pdf", saveFile.2)
+  # 
+  # pdf(saveFile.2, width = w / 2, height = h / 2, useDingbats = FALSE)
+  
   if (heatmap.legend.side== annot.legend.side){
-    suppressMessages(draw(hh, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
+    suppressMessages(draw(hh, split= LABS,  merge_legend = TRUE,  
+                          heatmap_legend_side = heatmap.legend.side, 
+                          annotation_legend_side = heatmap.legend.side, 
+                          annotation_legend_list = lgd_list,
          heatmap_legend_list = ht.list))
     
     # This actually works ==== 
@@ -839,15 +965,31 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
     # })
     
   } else {  # ALL is this
-    suppressMessages(draw(hh, split= LABS,  merge_legend = FALSE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = annot.legend.side, annotation_legend_list = lgd_list,
-         heatmap_legend_list = ht.list))
+    suppressMessages(draw(hh, split= LABS,  merge_legend = FALSE,  
+                          heatmap_legend_side = heatmap.legend.side, 
+                          annotation_legend_side = annot.legend.side, 
+                          # annotation_legend_list = lgd_list,
+                          annotation_legend_list = NULL,
+                          # heatmap_legend_list = ht.list
+                          heatmap_legend_list= c(ht.list, lgd_list)
+                          )
+                     )
   }
+  
+  # # Add horizontal lines at the gene positions
+  # decorate_heatmap_body("oncoplot", {  # <--- match the name used in `oncoPrint()`
+  #   gene_idx <- which(rownames(M) %in% c("TP53", "SRSF2", "IDH2"))
+  #   ordered_idx <- row_order(ht)[["oncoplot"]][gene_idx]
+  #   for (i in ordered_idx) {
+  #     grid.lines(x = c(0, 1), y = unit(i, "native"), gp = gpar(col = "red", lwd = 2))
+  #   }
+  # })
   
   dev.off()
   
   cat(paste("\n *** Final oncoprint saved at: ",saveFile.2))
   
-  htShiny(hh, width1 = 1000)
+  # htShiny(hh, width1 = 1000)
   
   ############################################
   # Return specs so u can draw outside ----
@@ -862,14 +1004,27 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ############################################
   # Report final sample and gene/alt order ----
   ############################################
-  
+  # browser()
   if (!is.null(split.cols.by)){
     cat(paste("\n*** NOTE ***You can not get the final ordered list of samples (column_order) if you have chosen to split the columns by RESPONSE.\n 
               You can still get the list if you re-run the function and set split.by.response= FASLE. \n---> Future dev."))
     final.sample_order = NULL
-  } else {
+    
     final.sample_order <- colnames(M)[column_order(ht)]
     final.row_order <- rownames(M)
+    
+  } else {
+    
+    co <- column_order(ht)
+    
+    if (is.list(co)) {
+      co <- unlist(co, use.names = FALSE)
+    }
+    
+    final.sample_order <- colnames(M)[co]
+    final.row_order <- rownames(M)
+    
+
   }
 
   #########################################################################################
@@ -895,6 +1050,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
               onco.samples= final.sample_order,
               onco.genes= final.row_order,
               Fig.Path = saveFile.2,
+              mut_matrix= M,
               # rendered_ht= rendered_ht,
               draw.specs = draw.specs))
   

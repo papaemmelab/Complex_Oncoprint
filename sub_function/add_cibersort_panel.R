@@ -1,4 +1,6 @@
-add_cibersort_panel <- function(){
+add_cibersort_panel <- function(ht, M, added.heatmap, legend.title.font= 10, legend.label.font= 10, rows.font= 10, annot.title.side= "top", show.sample.names= FALSE){
+  
+  # browser()
   
   source(file.path("./sub_function/create_lineage_heatmaps.R"))
   

@@ -1,6 +1,7 @@
 prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols, 
                                 show.multis, show.another.banner, 
-                                show.response, show.individuals,
+                                show.response = FALSE, 
+                                show.individuals= FALSE, show.individuals.legend= FALSE,
                                 legend.title.font, legend.label.font, 
                                 annot.title.side, 
                                 num.rows.annot.lgd, show.annot.legend, 
@@ -8,7 +9,22 @@ prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols,
                                 rows.font,
                                 split.cols.by,
                                 show.ALL= FALSE,
-                                show.MPN= FALSE) {
+                                show.MPN= FALSE,
+                                banner.label.col = "#5b859e",
+                                legend.height = NULL,
+                                na_col = NULL) {
+  
+  MN <- met.brewer("Monet", type = "discrete")
+  RD <- met.brewer("Redon", type = "discrete")
+  FH <- met.brewer("Isfahan1", type = "discrete") 
+  DM <- met.brewer("Demuth", type = "discrete") 
+  HK1 <- met.brewer("Hokusai1", type = "discrete") 
+  HK3 <- met.brewer("Hokusai3", type = "discrete") 
+  DeR <- met.brewer("Derain", type = "discrete")
+  TP <- met.brewer("Tiepolo", type = "discrete")
+  LK <- met.brewer("Lakota", type = "discrete")
+  CAS1 <- met.brewer("Cassatt1", type = "discrete")
+  CAS2 <- met.brewer("Cassatt2", type = "discrete")
   
   #############################
   #### Tag multis (dots) ====
@@ -51,7 +67,11 @@ prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols,
                                           ribbon.size, banner.name= banner.name, 
                                           show.individuals= show.individuals,
                                           show.ALL= show.ALL,
-                                          show.MPN= show.MPN)
+                                          show.MPN= show.MPN,
+                                          banner.label.col= banner.label.col,
+                                          legend.height = legend.height,
+                                          na_col = na_col
+                                          )
     
     #### Get bottom.Annot features ====
     
@@ -102,11 +122,13 @@ prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols,
     fontcolors <- rep("black", nrow(M))
     
     fontsizes[row_idx] <- rows.font+2
-    fontcolors[row_idx] <- "#175f5d" #FH[7]
+    # fontcolors[row_idx] <- "#175f5d" #FH[7] # B-ALL
+    fontcolors[row_idx] <- "#7b2c36" # MPN EHA
     
     # Set up fill colors for rows
     fill.colors <- rep("white", nrow(M)) # Default color
-    fill.colors[row_idx] <- "#E8F5E9"        # Highlight color
+    # fill.colors[row_idx] <- "#E8F5E9"        # Highlight color # B-ALL
+    fill.colors[row_idx] <- "#fff1cc"
     
   } else {
     fontsizes <- rows.font

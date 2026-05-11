@@ -1,8 +1,9 @@
-prepare_fill_M <- function(long_df, SAMPLES, GENES, remove.empty.cols = TRUE){ # lookup.table DEV for remove.empty.cols
+prepare_fill_M <- function(long_df, SAMPLES, GENES, remove.empty.cols = TRUE, show.multis= FALSE){ # lookup.table DEV for remove.empty.cols
   
   ###############################################################
   # == Prepare M matrix of variants  ====
   ##############################################################
+  # browser()
   
   gene.order <- GENES
   
@@ -12,7 +13,7 @@ prepare_fill_M <- function(long_df, SAMPLES, GENES, remove.empty.cols = TRUE){ #
                     "complex", "complex_karyotype", "biallelic", "multi_hit", "stop_gain", "truncating",
                     "inframe_indel", "inframe", "frameshift_indel", "frameshift", "amp", "gain", "del", "loss",
                     "loh", "cnloh", "inv", "rearr", "fusion", "fus", "trans", "tra", "tdup", "dup", "add", "der",
-                    "other_svs", "other_cnvs", "other", "unavailable", "normal", "karyotypic_abnormal")
+                    "other_svs", "other_cnvs", "other", "unavailable", "normal", "karyotypic_abnormal","iso")
   
   # Collapse EFFECTs by gene and sample with proper ordering
   
@@ -77,8 +78,31 @@ prepare_fill_M <- function(long_df, SAMPLES, GENES, remove.empty.cols = TRUE){ #
   #     M[temp$GENE[j], temp$TARGET_NAME[j]] <- paste0(M[temp$GENE[j], temp$TARGET_NAME[j]], unique(temp$EFFECT),";", collapse = "")
   #   }
   # }
+  
+  if (show.multis){
+    
+    cat(paste0("\nStart multi.hit Oncoprint preparation...\n"))
+    
+    multi.hits <- long_df %>% dplyr::group_by(TARGET_NAME, GENE) %>% dplyr::mutate(N= n()) %>% dplyr::filter(N>1) %>% dplyr::select(TARGET_NAME, GENE) %>% unique()
+    
+    multi.hits <- data.frame(multi.hits)
+    
+    if (nrow(multi.hits) > 0) {
+      for (k in seq_len(nrow(multi.hits))) {
+        gene <- as.character(multi.hits$GENE[k])
+        sample <- as.character(multi.hits$TARGET_NAME[k])
+        val <- mat[gene, sample]
+        
+        if (!grepl("biallelic", val)) {
+          mat[gene, sample] <- if (nchar(val) > 0) paste0(val, ";multi_hit") else "multi_hit"
+        }
+      }
+    }
+  }
  
-  return(list(M= mat,
+  mat = mat[gene.order, ]
+  
+  return(list(M= as.matrix(mat),
               gene.order= gene.order,
               events= events)) 
 }

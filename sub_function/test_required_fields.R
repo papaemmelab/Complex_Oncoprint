@@ -98,7 +98,9 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
                       "multi_hit",
                       "biallelic",
                       "multi_hit_mut_cnv",
-                      "multi_muts"
+                      "multi_muts",
+                      "iso",
+                      "ISO"
   )
                       
   # stop_lost, splice_site_variant, stop_retained_variant, initiator_codon_change can be from both indels or subs in VEP
@@ -127,7 +129,6 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
   }
   
   if (!all(tolower(muts$EFFECT) %in% tolower(mut.VT.options))){
-    cat(paste0("\n\nERROR --- Valid options for EFFECT are : \n", paste(mut.VT.options,collapse  = ", ")))
     stop(paste("\n****Not valid entry for mutation EFFECT  => ", setdiff(muts$EFFECT, mut.VT.options),
                "\n\nCheck available mutation types in README, or change the troublesome EFFECT to 'other_SNVs' or 'other_SVs' to continue."))
   } else {

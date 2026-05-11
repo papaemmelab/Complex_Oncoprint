@@ -31,7 +31,8 @@ make_uniform_EFFECT_values <-  function(data){
     "other_svs" = "^other_svs$",
     "unavailable" = "^n/e$|^inconclusive$|^n_e$|^n_a$|^unavailable$|^unavail$",
     "complex_karyotype" = "^complex_karyotype$",
-    "normal" = "^normal_karyotype$|^normal$"
+    "normal" = "^normal_karyotype$|^normal$",
+    "iso" = "^isochromosome$|^iso$|^iso$|^iso-chr$|^iso-amp$|^iso-del$"
   )
 
   ### FUTURE CORRECTION : Non-stop mutation must have a sep cat

@@ -26,7 +26,11 @@ draw_basic_oncoprint <-  function(M, EFFECT, alter_fun,
   
   simple.ht <- oncoPrint(M, get_type = function(x) strsplit(x, ";")[[1]],
                          
-                         alter_fun = alter_fun, col = append(list.colors$mut.colors, list.colors$cyto.colors),
+                         alter_fun = alter_fun, 
+                         
+                         # col = append(list.colors$mut.colors, list.colors$cyto.colors),
+                         
+                         col= list.colors$mut.colors,
                          
                          column_order = column_order,
                          

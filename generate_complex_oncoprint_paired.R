@@ -32,6 +32,10 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
                                 legend.label.font= 10, legend.title.font= 14, 
                                 fig.title.font= 18,  barplot.font= 10,  
                                 
+                                sec.1.label = "MUT",
+                                sec.2.label = "CNVs",
+                                sec.3.label = "SVs", 
+                                
                                 multis.dot.size = 0.8, #****FONTs: row.groupname.font is the same as rows.font
                                  
                                 right.w= 13, top.w= 8 , robbon.size= 2, w=3200, h=1800,  #**** Sizes of barplots and fig 
@@ -87,7 +91,7 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
   #   min.freq                            Only applicable for MUTATIONs data: only show GENEs that have >= min.freq mutations [default = 1] 
   #   show.title [default= TRUE]          Display the figure title. By default this option is set on and if no added title string is (next option) is defined the figure will have a title that reports the total # variants and samples
   #   title.str                           The optional title of the figure, By default this will be followed by the total number of variants in the dataset and number of samples/patients
-  #   save.path                           The directory of the output oncoplot : by default the name of the plot is hardcoded as : save.path/"Heatmap_minFreq_",min.freq,".jpg"
+  #   save.path                           The directory of the output oncoplot : by default the name of the plot is hardcoded as : save.path/"Heatmap_minFreq_",min.freq,".png"
   # === Control Font size ====
   #==============================================
   #   cols.font                           Sample names font size (i.e., columns) [default = 18]
@@ -218,6 +222,15 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
   }
   
   ###############################################################
+  # == Adjust EFFECT to uniform texts  ====
+  ##############################################################
+  
+  valid.effects <- tolower(rename_IDs$valid.effects)
+  
+  source(file.path("./sub_function/make_uniform_EFFECT_values.R"))
+  data <- make_uniform_EFFECT_values(data) 
+  
+  ###############################################################
   # == Prepare the Heatmap rows and columns  ====
   ##############################################################
   
@@ -231,51 +244,96 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
   SAMPLES = as.data.frame(with(data, table(TARGET_NAME)),stringsAsFactors = FALSE)
   
   ###############################################################
-  # == Adjust EFFECT to uniform texts  ====
+  # == Prepare M and populate matrix of variants  ====
   ##############################################################
-  data$EFFECT <- tolower(data$EFFECT)
   
-  data$EFFECT <- gsub("^missense$|^non_synonymous_codon$|^missense_codon$","missense", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^stop_gained$|^stop_gain$|^stop_lost$|^stop_retained_variant$","stop_gain", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^splice_site_variant$","splice_site_variant", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^initiator_codon_change$","initiator_codon_change", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^inframe_codon_loss$|^inframe_indel$|^inframe_deletion$|^inframe_codon_gain$|^inframe_insersion$|^inframe_variant$","inframe_indel", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^complex_change_in_transcript$|^complex$","complex",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^other_snvs$","other_snvs",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^frameshift_indel$|^frameshift_del$|^frameshift_variant$","frameshift_indel",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^amp$|^amplification$|^gain$|^CN-gain$","amp", ignore.case = TRUE,  data$EFFECT)
-  data$EFFECT <- gsub("^del$|^deletion$|^loss$|^CN-del$", "del", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^LOH$","loh", ignore.case = TRUE,  data$EFFECT)
-  data$EFFECT <- gsub("^unknown$","unknown",ignore.case = TRUE, data$EFFECT)
-
-  data$EFFECT <- gsub("^inv$|^inversion$", "inv", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^tandem duplications$|^tandem_duplications$|^tandem dup$","tdup", ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^fusion$|^fus$","fusion",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^translocation$|^trans$","trans",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^other_svs$","other_svs",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^n/e$|^inconclusive$|^n_e$|^n_a$","inconclusive",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^complex_karyotype$","complex_karyotype",ignore.case = TRUE, data$EFFECT)
-  data$EFFECT <- gsub("^normal_karyotype$|^normal$","normal",ignore.case = TRUE, data$EFFECT)
+  source(file.path("./sub_function/prepare_fill_M.R"))
+  M.List <- prepare_fill_M(data, SAMPLES$TARGET_NAME, GENES$genes, remove.empty.cols = rem.empty, show.multis = show.multis)
   
-  ####################################
-  # Test EFFECTs  ====
-  ####################################
+  M <- M.List$M
+  gene.order <- M.List$gene.order
+  events <- M.List$events
   
-  valid.effects <- tolower(c("missense","stop_gain","splice_site_variant","initiator_codon_change",
-                     "inframe_indel","complex","other_snvs","frameshift_indel","unknown", "fusion",
-                     "AMP","DEL","LOH","INV","TDUP","FUS","TRANS","OTHER_SVs","complex_karyotype", 
-                     "DER","ADD","Normal","inconclusive"
-                     ))
+  ###############################################################
+  # == Define "alter_fun" =====
+  ##############################################################
   
-  data$EFFECT <- tolower(data$EFFECT)
+  cat(paste0("\nLoading Default ALTER func...\n"))
   
-  invalid.effects <- setdiff(data$EFFECT, valid.effects)
+  source(file.path("./sub_function/define_ALTER_fun.R"))
+  alter_fun <- define_ALTER_fun(list.ht.colors, multis.dot.size, multi.col= multi.col, pink.multi = highlight.multis.cell)
   
-  if (length(invalid.effects) >0) {
-    stop(cat(paste("\nThese variant(s) EFFECTs are not valid: ", paste(invalid.effects, collapse = ", "))))
-  } else {
-    cat(paste0("\nAll EFFECTs are valid. Good to go...\n"))
+  
+  ###############################################################
+  # == Define Labels for MUT/CNV/... segments  =====
+  ##############################################################
+  
+  EFFECT.all <- list(variants = c("biallelic", "missense","stop_gain","frameshift_indel", "frameshift",
+                                  "inframe_indel","inframe","splice_site_variant", "splicing",
+                                  "initiator_codon_change",
+                                  
+                                  "complex", "complex_karyotype", "truncating",
+                                  "unknown", 
+                                  "amp", "gain",    
+                                  "del", "loss",
+                                  "loh",  "cnloh",
+                                  "inv",   "INV",   
+                                  "iso", "ISO",
+                                  "fusion", "TRA",  
+                                  "trans", "other_svs","tdup","dup","rearr",
+                                  "add","der",
+                                  "other_snvs",
+                                  "other_cnvs",
+                                  "unavailable","normal","karyotypic_abnormal"), 
+                     
+                     labels= c("biallelic","missense","stop_gain","frameshift_indel", "frameshift",
+                               "Inframe indel","Inframe","splicing variant","splicing",
+                               "Initiator_codon change",
+                               
+                               "complex", "Complex karyotype", "truncating",
+                               "Unknown",   
+                               "Amplification", "GAIN",    
+                               "Deletion", "LOSS",
+                               "cnLOH", "cnLOH",
+                               "Inversion", "INV",
+                               "ISO","ISO",
+                               "FUS", "TRA",
+                               "TRA","Other SVs","Tandem duplication", "Duplication","Rearrangement",
+                               "Add.","Der.",
+                               "Other mutations",
+                               "Other CN alterations",
+                               "Unavailable","Normal","Karyotypic abnormal"))
+  
+  EFFECT <- list (variants = EFFECT.all[[1]][EFFECT.all[[1]] %in% data$EFFECT],
+                  labels = EFFECT.all[[2]][EFFECT.all[[1]] %in% data$EFFECT]
+  )
+  
+  
+  LABS <- factor(gene.list$LAB, levels=c(sec.1.label, sec.2.label, sec.3.label))
+  
+  #################################
+  # == Top-annotation (1)  ====
+  #################################
+  
+  cat(paste0("\nPrepare Top Annotation...\n"))
+  
+  # qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual' & brewer.pal.info$colorblind==TRUE,]
+  # col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+  
+  df <-  data.frame(TARGET_NAME= colnames(M)) #### IMPORTANT :: here we make sure the order of df = colnames of M (this guarantees the correct order of annotation)
+  df$TARGET_NAME <- as.character(df$TARGET_NAME)
+  
+  surv.df = df
+  
+  if (show.another.banner | show.response | show.individuals){
+    
+    df <- merge(df, lookup.table[,REQ.cols], by=c("TARGET_NAME"), all.x = TRUE)
+    
+    if (any(is.na(df$INDIVIDUAL.ID))) {
+      stop("\n***An error occured in merging dataframe of variants with LOOKUP.TABLE. \nYou have at least one sample where INDIVIDUAL.IDs= NA.\n This can occur if the key TARGET_NAME in MUTs and LOOKUP.TABLE are inconsistent!\n")
+    }
   }
+  
   
   ####################################
   # Load colors  ====
@@ -285,160 +343,6 @@ generate_complex_oncoprint_paired <-  function(muts= muts, cnvs= NULL, svs= NULL
   
   source(file.path("./sub_function/heatmap_colors.R"))
   list <- heatmap_colors()
-  
-  ###############################################################
-  # == Prepare M matrix of variants  ====
-  ##############################################################
-  
-  if (rem.empty) {
-    M.num.cols <- length(unique(SAMPLES$TARGET_NAME))
-    M.col.names <- SAMPLES$TARGET_NAME
-  } else {
-    M.num.cols <- length(unique(lookup.table$TARGET_NAME))
-    M.col.names <- unique(lookup.table$TARGET_NAME)
-  }
-  
-  M <- as.data.frame(matrix(0, nrow = length(GENES$genes), ncol = M.num.cols))
-  
-  row.names(M) <- GENES$genes
-  
-  colnames(M) <- M.col.names
-  
-  gene.order <- gene.list$GENE
-  
-  ###############################################################
-  # == Add the Event.Type in the Matrix ====
-  ##############################################################
-  
-  cat(paste0("\nGenerating the matrix of mutations (M)...\n"))
-  
-  M[M==0] = ""
-  
-  events <- factor(unique(data$EFFECT), levels=c("unknown","other_snvs","missense","splice_site_variant","initiator_codon_change",
-                                                 "complex","complex_karyotype","stop_gain","inframe_indel",
-                                                 "frameshift_indel","amp","del","loh","inv","fusion","trans","tdup","add","der",
-                                                 "other_svs","inconclusive","normal"))
-  events <- events[order(events)]
-  
-  events <- as.character(events)
-  
-  for (i in 1: length(events)){
-    
-    temp <- subset(data, EFFECT==events[i])
-    
-      for (j in 1:nrow(temp)) {
-          
-          M[temp$GENE[j], temp$TARGET_NAME[j]] <- paste0(M[temp$GENE[j], temp$TARGET_NAME[j]], unique(temp$EFFECT),";", collapse = "")
-      }
-  }
-  
-gogo=1
-  ###############################################################
-  # == Define "alter_fun" =====
-  ##############################################################
-
-  alter_fun = list(
-    background = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.52, "mm"), h-unit(0.52, "mm"), gp = gpar(fill = "#f0f0f0", col = NA)) # alpha=0.5
-    },
-    unknown = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$mut.colors[["unknown"]][1], col = NA))
-    },
-    other_snvs = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$mut.colors[["other_snvs"]][1], col = NA))
-    },
-    missense = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$mut.colors[["missense"]][1]  , col = NA))
-    },
-    splice_site_variant = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$mut.colors[["splice_site_variant"]][1], col = NA))
-    },
-    initiator_codon_change = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$mut.colors[["initiator_codon_change"]][1], col = NA))
-    },
-    complex = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$mut.colors[["complex"]][1], col = NA))
-    },
-    stop_gain = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h-unit(0.3, "mm"), gp = gpar(fill = list$mut.colors[["stop_gain"]][1], col = NA))
-    },
-    inframe_indel = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$mut.colors[["inframe_indel"]][1]  , col = NA))
-    },
-    frameshift_indel = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$mut.colors[["frameshift_indel"]][1],  col = NA))
-    },
-    complex_karyotype = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["complex_karyotype"]][1], col = NA))
-    },
-    amp = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["amp"]][1], col = NA))
-    },
-    del = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["del"]][1], col = NA))
-    },
-    loh = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["loh"]][1], col = NA))
-    },
-    inv = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["inv"]][1], col = NA))
-    },
-    fusion = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["fusion"]][1],  col = NA))
-    },
-    trans =function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["trans"]][1],  col = NA))
-    },
-    other_svs =function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["other_svs"]][1],  col = NA))
-    },
-    tdup =function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h*0.33, gp = gpar(fill = list$cyto.colors[["tdup"]][1],  col = NA))
-    },
-    inconclusive=function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"),  h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["inconclusive"]][1],  col = NA))
-    },
-    der = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["der"]][1],  col = NA))
-    },
-    add = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["add"]][1],  col = NA))
-    },
-    multi_hit = function(x, y, w, h) {
-      grid.points(x, y, pch = 21, size = unit(multis.dot.size, "cm"), gp = gpar(col = "black", fill= "#FAEFD1"))
-    },
-    normal = function(x, y, w, h) {
-      grid.rect(x, y, w-unit(0.3, "mm"), h-unit(0.3, "mm"), gp = gpar(fill = list$cyto.colors[["normal"]][1]  , col = NA))
-    }
-  )
-  
-  EFFECT <- list(variants = c("missense","stop_gain","frameshift_indel",
-                              "inframe_indel","splice_site_variant",
-                              "initiator_codon_change",
-                              "complex",
-                              "unknown",  "complex_karyotype",
-                              "amp",     
-                              "del",  "loh",  "inv",      
-                              "fusion",   
-                              "trans", "other_svs","tdup",
-                              "add","der",
-                              "other_snvs",
-                              "multi_hit","inconclusive","normal"), 
-                 
-                 labels= c("Missense","Stop-gain","Frameshift indel",
-                           "Inframe indel","Splicing variant",
-                           "Initiator_codon change",
-                           "Complex", 
-                           "Unknown", "Complex karyotype",  
-                           "Amplification",
-                           "Deletion","cnLOH", "Inversion",
-                           "Fusion",
-                           "Translocation","Other SVs","Tandem duplication",
-                           "Add.","Der.",
-                           "Other mutations",
-                           "Multiple variants","Inconclusive","Normal"))
-  
-  LABS <- factor(gene.list$LAB, levels=c("Substitusions/Indels","Cytogenetics","CNVs", "SVs"))
   
   #################################
   # == Top-annotation (1)  ====
@@ -623,6 +527,7 @@ gogo=1
     
   }
 
+  # browser()
   
   ###############################################################
   # == Set title/params and figure name ==== 
@@ -695,9 +600,9 @@ gogo=1
   num.my.lgd.rows <- num.rows.heatmap.lgd 
   
   if (is.null(save.name)){
-    saveFile <- file.path(savePath,paste0("Heatmap_TEMP_minFreq_",min.freq,".jpg"))
+    saveFile <- file.path(save.path,paste0("Heatmap_TEMP_minFreq_",min.freq,".png"))
   } else {
-    saveFile <- file.path(savePath,paste0("Heatmap_TEMP_minFreq_",min.freq,"_",save.name,".jpg"))
+    saveFile <- file.path(save.path,paste0("Heatmap_TEMP_minFreq_",min.freq,"_",save.name,".png"))
   }
   
   source(file.path("./sub_function/draw_basic_oncoprint.R"))
@@ -959,13 +864,13 @@ gogo=1
   ## Draw simple.ht ====
   ##======================================================
   if (is.null(save.name)){
-    saveFile <- file.path(savePath,paste0("Heatmap_minFreq_",min.freq,"_Complex_Heatmap.jpg"))
+    saveFile <- file.path(save.path,paste0("Heatmap_minFreq_",min.freq,"_Complex_Heatmap.png"))
     
   } else {
-    saveFile <- file.path(savePath,paste0("Heatmap_minFreq_",min.freq,"_Complex_Heatmap_",save.name,".jpg"))
+    saveFile <- file.path(save.path,paste0("Heatmap_minFreq_",min.freq,"_Complex_Heatmap_",save.name,".png"))
   }
   
-  jpeg(saveFile, width=w, height=h, pointsize =14, res = 100)
+  png(saveFile.2, units="in", width = w / 2, height = h / 2, res = 300)
   
   if (heatmap.legend.side== annot.legend.side){
     draw(ht, split= LABS,  merge_legend = TRUE,  heatmap_legend_side = heatmap.legend.side, annotation_legend_side = heatmap.legend.side, annotation_legend_list = lgd_list,
