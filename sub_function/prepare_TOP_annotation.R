@@ -62,7 +62,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,
                            BM_Blast_Baseline = anno_points(lookup.table$BM_BLASTS_BASELINE,  ylim = c(0, max(lookup.table$BM_BLASTS_BASELINE, na.rm = TRUE)+5),
                                                            size = unit(5,"mm"),
                                                            width = unit(1, "cm"),
-                                                           gp = gpar(col = ifelse(lookup.table$BM_BLASTS_BASELINE < 20, bad.col, RD[1])), 
+                                                           gp = gpar(col = ifelse(lookup.table$BM_BLASTS_BASELINE < 20, bad.col, FH[1])), 
                                                            height = unit(1, "cm"),
                                                            axis_param = list(side = top.annot.axis.side, 
                                                                              gp= gpar(fontsize= barplot.font, fontface="bold"))),
@@ -109,9 +109,8 @@ prepare_TOP_annotation <- function(list.colors,show.border,
     
     browser()
     
-    blast_col <- c("<20"=RD[1], ">=20"=HK1[2])
-    blast_col <- add.alpha(blast_col, alpha = 0.5)
-    
+    blast_col <- c("<20"=DM[6], ">=20"=FH[1])
+
     # Update the annotations with the shared ylim
     
     h1 <- HeatmapAnnotation(column_bar = anno_oncoprint_barplot(type= NULL,
@@ -149,7 +148,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,
                             
                             annotation_name_gp= gpar(fontsize= legend.title.font, fontface="bold", col= banner.label.col), # blue top annot names
                             
-                            annotation_name_side= "left", ## brings TBA.blast label to left
+                            annotation_name_side= top.annotation_name_side, ## brings TBA.blast label to left
                             
                             annotation_name_rot= 0,
                             
@@ -168,7 +167,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,
     
     # browser()
 
-    blast_col <- c("≤10"=RD[6], ">10"=RD[1])
+    blast_col <- c("≤10"=DM[6], ">10"=FH[1])
     
     # Update the annotations with the shared ylim
     
@@ -187,7 +186,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,
         width = unit(1, "cm"),
         height = unit(1, "cm"),
         pch   = 16,
-        gp    = gpar(col = ifelse(lookup.table$BM...BLASTS > 10,blast_col[2], blast_col[1])),
+        gp    = gpar(col = ifelse(lookup.table$BM...BLASTS > 10,blast_col[1], blast_col[2])),
         axis_param = list(
           side = top.annot.axis.side,
           gp   = gpar(fontsize = barplot.font, fontface = "bold")
@@ -198,7 +197,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,
           labels = c("≤10", ">10"),
           type   = "points",
           pch    = 16,
-          legend_gp = gpar(col = c(RD[6], RD[1]))
+          legend_gp = gpar(col = c(FH[1], DM[6]))
         )
       ),
                             
@@ -209,7 +208,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,
                                 size = unit(5,"mm"),
                                 
                               width = unit(1, "cm"),
-                              gp = gpar(col = ifelse(lookup.table$HEME...BLASTS > 10, RD[1], RD[6])),
+                              gp = gpar(col = ifelse(lookup.table$HEME...BLASTS > 10, FH[1], DM[6])),
                               height = unit(1, "cm"),
                               axis_param = list(side = top.annot.axis.side, 
                                                 gp= gpar(fontsize= barplot.font, fontface="bold"))),
@@ -218,7 +217,7 @@ prepare_TOP_annotation <- function(list.colors,show.border,
       simple_anno_size = unit(5, "cm"), height = unit(top.w, "cm"), ## not affecting annot point size, idk
       
       annotation_name_gp= gpar(fontsize= legend.title.font, fontface="bold", col=banner.label.col), # blue top annot names
-      annotation_name_side= "left", ## brings TBA.blast label to left
+      annotation_name_side= top.annotation_name_side, ## brings TBA.blast label to left
       annotation_name_rot= 0,
       
       annotation_name_offset = unit(20, "mm"),

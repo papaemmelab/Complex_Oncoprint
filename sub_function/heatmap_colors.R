@@ -4,6 +4,8 @@ heatmap_colors <-  function() {
   library(colorspace)
   library(unikn)
   library(MetBrewer)
+  library("wesanderson")
+  
   
   #==================================================================================
   #   Written by Noushin Farnoud, Jul 2018, Latest Update Jan 2024
@@ -21,17 +23,24 @@ heatmap_colors <-  function() {
   #==================================================================================
   # browser()
   
-  MN <- met.brewer("Monet", type = "discrete")
-  RD <- met.brewer("Redon", type = "discrete")
-  FH <- met.brewer("Isfahan1", type = "discrete") 
-  DM <- met.brewer("Demuth", type = "discrete") 
-  HK1 <- met.brewer("Hokusai1", type = "discrete") 
-  HK3 <- met.brewer("Hokusai3", type = "discrete") 
-  DeR <- met.brewer("Derain", type = "discrete")
-  TP <- met.brewer("Tiepolo", type = "discrete")
-  LK <- met.brewer("Lakota", type = "discrete")
-  CAS1 <- met.brewer("Cassatt1", type = "discrete")
-  CAS2 <- met.brewer("Cassatt2", type = "discrete")
+  MN <<- met.brewer("Monet", type = "discrete")
+  RD <<- met.brewer("Redon", type = "discrete")
+  FH <<- met.brewer("Isfahan1", type = "discrete") 
+  DM <<- met.brewer("Demuth", type = "discrete") 
+  HK1 <<- met.brewer("Hokusai1", type = "discrete") 
+  HK3 <<- met.brewer("Hokusai3", type = "discrete") 
+  DeR <<- met.brewer("Derain", type = "discrete")
+  TP <<- met.brewer("Tiepolo", type = "discrete")
+  LK <<- met.brewer("Lakota", type = "discrete")
+  CAS1 <<- met.brewer("Cassatt1", type = "discrete")
+  CAS2 <<- met.brewer("Cassatt2", type = "discrete")
+  ZIS <<- wes_palette("Zissou1")
+  GB2 <<- wes_palette("GrandBudapest2")
+  CV <<- wes_palette("Cavalcanti1")
+  ACT3 <- wes_palette("AsteroidCity3")
+  ACT1 <- wes_palette("AsteroidCity1")
+  ACT2 <- wes_palette("AsteroidCity2")
+  
   
   #############################################
   # == Define Default Mutation colors ----
@@ -57,72 +66,71 @@ heatmap_colors <-  function() {
   mut.colors <-  list( "biallelic"= DM[1],
                        "Biallelic"= DM[1],
                        
-                       "complex_change_in_transcript"= HK1[3],
-                       "complex"= HK1[3],
+                       "complex_change_in_transcript"= "#CC79A7CC", #HK1[2], # nice color dark orange,MN[3],
+                       "complex"=  "#CC79A7CC",
                        
-                       # "complex_change_in_transcript"= MN[3],
-                       # "complex"= MN[3],
-
-                       # "missense" = MN[2],
+                       "missense" = HK1[6], #MN[2],
+                       "non_synonymous_codon" = HK1[6], # older/synonymous annotation term for missense_variant
                        
-                       "missense" = HK1[6],
+                       "initiator_codon_change"= FH[1],
                        
-                       "initiator_codon_change"= RD[4],
+                       "stop_lost"= "#4E79A7CC",
                        
-                       "stop_lost"= MN[1],
-                       
-                       "stop_retained_variant"= RD[2], #RD[2],
-                       "stop_gained"=  RD[2], #MN[7],
+                       "stop_retained_variant"= RD[2], 
+                       "stop_gained"=  RD[2],
                        "stop_gain"=  RD[2],
 
-                       "splice_site_variant"= HK1[5], #RD[3],
-                       "splicing"=HK1[5],
-                       "extended_intronic_splice_region_variant"= HK1[3],
+                       "splice_site_variant"= DM[6], #RD[9], # HK1[5] mice yellow, #RD[3],
+                       "splicing"= DM[6], 
+                       "extended_intronic_splice_region_variant"= "#5E3C99CC", 
                        
                        "frameshift"= DM[2],
-                       "truncating" = DM[1],
+                       "frameshift_variant"= DM[2],
+                       "truncating" = ZIS[5], #HK1[7], #"#B2182BCC", #RD[2], #DM[1],
+                       
+                       "frameshift_indel" = DM[2],
                        
                        "inframe_codon_gain"= DeR[4],
                        "inframe_codon_loss"= DeR[5],
-                       "inframe_variant"= DeR[9],
-                       "inframe"= DeR[4],
+                       "inframe_variant"= "#AACFDD",
+                       "inframe_indel"= "#AACFDD",
+                       "inframe"= "#AACFDD", # nice color bluw DeR[4],
                        
-                       "multi_hit" = HK1[4],
-                       "multi_hits" =  HK1[4],
-                       "multi_muts"=  HK1[4],
+                       "multi_hit" = ACT3[1], #RD[5], #HK1[4],
+                       "multi_hits" =   ACT3[1],
+                       "multi_muts"=   ACT3[1],
 
                        "loss" = RD[12],
                        "Loss" = RD[12],
                        "LOSS" = RD[12],
                        
                        
-                       "gain" = MN[9],  # TP[5],
-                       "Gain" = MN[9],
-                       "GAIN" = MN[9],
+                       "gain" = HK1[5], #MN[9],  # TP[5],
+                       "Gain" = HK1[5],
+                       "GAIN" = HK1[5],
                        
                        # "loh" = RD[11], # BALL
                        # "cnLOH"=  RD[11],
                        # "cnloh"=  RD[11],
                        
-                       "loh" = "#91987A", #FH[2], #TP[5], # BALL FH[1],
-                       "cnLOH"= "#91987A",# FH[2],
-                       "cnloh"= "#91987A",# FH[2],
+                       "loh" = CV[2], #"#91987A", #"#91987A", #FH[2], #TP[5], # BALL FH[1],
+                       "cnLOH"=  CV[2],
+                       "cnloh"=  CV[2],
                        
-                       "trans"= LK[1], #RD[8],
-                       "TRA"= LK[1],
+                       "trans"= GB2[2], #RD[8],LK[1]
+                       "TRA"= GB2[2],
                        
-                       "INV"= RD[9],
-                       "inv"= RD[9],
+                       "INV"= GB2[4],
+                       "inv"= GB2[4],
                        
+                       "fusion"= ZIS[1], #RD[3],
+                       "FUS"= ZIS[1], 
                        
-                       "fusion"= RD[4],
-                       "FUS"= RD[4],
+                       "SNV" = "#6B8E23", #RD[4],
+                       "INDEL"= "#7D6B4B", #RD[2],
                        
-                       "SNV" = RD[4],
-                       "INDEL"= RD[2],
-                       
-                       "iso"= "red", # CAS2[10],
-                       "ISO" ="red", # CAS2[10],
+                       "iso"= "blue", # CAS2[10],
+                       "ISO" = "blue", # CAS2[10],
                        
                        "other"= FH[7]
   )
@@ -133,21 +141,24 @@ heatmap_colors <-  function() {
   
   # Define specific names to exclude from alpha modification
   #=============================================================================
-  specific_names <- c("biallelic", "cnloh", #"gain",
-                      "stop_gained", "stop_retained_variant","stop_gain",
-                      "splice_site_variant", "splicing",
-                      "multi_hit","multi_hits", "multi_muts",
-                      "trans","trans","inv")
-
-  # Apply alpha only to colors not in `specific_names`
-  mut.colors[!tolower(names(mut.colors)) %in% specific_names] <- add.alpha(mut.colors[!(tolower(names(mut.colors)) %in% specific_names)], 0.8)
-  
-  # specific_names <- c("gain", "loss", "cnloh")
-  # # only mut these (MPN)
+  # specific_names <- c("biallelic", "cnloh", #"gain",
+  #                     "stop_gained", "stop_retained_variant","stop_gain",
+  #                     "splice_site_variant", "splicing",
+  #                     "multi_hit","multi_hits", "multi_muts",
+  #                     "trans","trans","inv")
+  # 
   # # Apply alpha only to colors not in `specific_names`
-  # mut.colors[tolower(names(mut.colors)) %in% specific_names] <- add.alpha(mut.colors[(tolower(names(mut.colors)) %in% specific_names)], 0.6)
+  # mut.colors[!tolower(names(mut.colors)) %in% specific_names] <- add.alpha(mut.colors[!(tolower(names(mut.colors)) %in% specific_names)], 0.8)
   
-  # mut.colors <- add.alpha(mut.colors, alpha = 0.6)
+  # specific_names <- c("gain", "loss", "cnloh","loh","biallelic","complex","truncating")
+  specific_names <- c("biallelic","complex","truncating","INV","multi_hit","splicing") # Halv poster
+  
+  # browser()
+  # only mut these (MPN)
+  # Apply alpha only to colors not in `specific_names`
+  mut.colors[!tolower(names(mut.colors)) %in% specific_names] <- add.alpha(mut.colors[!(tolower(names(mut.colors)) %in% specific_names)], 0.75)
+  
+  # mut.colors <- add.alpha(mut.colors, alpha = 0.75)
   
   #############################################
   # == Define CNV/Cytogenetics colors ----
@@ -370,8 +381,8 @@ heatmap_colors <-  function() {
     "High hyperdiploid" = HK1[1], #RD[8], #MN[4],
     "Hyperdiploid" = HK1[1], #RD[8], #MN[4],
     
-    "MEF2D" = FH[1],
-    "Near haploid" = MN[9],
+    "MEF2D" = TP[5], #FH[1],
+    "Near haploid" = FH[3],
     
     "PAX5 P80R" = RD[11],
     "PAX5alt" = RD[7],
@@ -385,8 +396,8 @@ heatmap_colors <-  function() {
     "ZNF384 Group" = RD[9] , #DeR[6]
     "ZNF384-like" = RD[10],
     
-    "Unclassified" = DM[7],
-    "Low Quality" = DM[7],
+    "Unclassified" = DM[6],
+    "Low Quality" = DM[6],
     "failed"= DM[10],
     "Failed"= DM[10],
     "FAILED"= DM[10],
@@ -396,7 +407,9 @@ heatmap_colors <-  function() {
     "P2RY8-CRLF2"= HK3[3],
     "Complex karyotype" = DM[4],
     "IGH-ID4" = DeR[2],
-    "ZEB2" = DeR[3]
+    "ZEB2" = DeR[3],
+    
+    "other" = FH[6]
   )
   
   # Convert the list to a named vector if needed
@@ -405,7 +418,7 @@ heatmap_colors <-  function() {
   
   ALL.SUBTYPE <- unlist(ALL.SUBTYPE)
   
-  ALL.SUBTYPE <- add.alpha(ALL.SUBTYPE, alpha = .6)
+  # ALL.SUBTYPE <- add.alpha(ALL.SUBTYPE, alpha = .6)
   
   ####################################
   # == ALL CNV.WGS.CNVS.CALLS cols ----
@@ -429,6 +442,8 @@ heatmap_colors <-  function() {
   ####################################
   ## ALL George's global clusters  ----
   ####################################
+  # browser()
+  
   cl2.colors <- c(
     "cl.1"  = "red",  # red
     "cl.2"  = "#377EB8",  # blue
@@ -501,6 +516,19 @@ heatmap_colors <-  function() {
   COPY.NUMBER.STATUS <- unlist(COPY.NUMBER.STATUS)
   COPY.NUMBER.STATUS <- add.alpha(COPY.NUMBER.STATUS, alpha = 0.8)
   
+  
+  #====================================================
+  # Just some very nice distinctive colors
+  
+  condition_colors <- c(
+    "JAK2"                = "#AACFDD", # blue
+    "JAK2+ASXL1"          = "#F4A460", # yellow
+    "JAK2+EZH2"           = "#9DB07A", # green
+    "JAK2+ASXL1+EZH2"     = "#C0392B"  # dark orange
+  )
+  
+  # show_col(mut.colors)
+  
   #====================================================
   
   return(list(mut.colors= mut.colors, 
@@ -514,7 +542,7 @@ heatmap_colors <-  function() {
               path.colors= path.colors,
               
               ALL.SUBTYPE= ALL.SUBTYPE, ### < ALL-specific
-              global.clusters = cl2.colors,  ### < ALL-specific
+              cl2.colors = cl2.colors,  ### < ALL-specific
               CNV.WGS.CNVS.CALLS = CNV.WGS.CNVS.CALLS,
               
               GENDER= GENDER,

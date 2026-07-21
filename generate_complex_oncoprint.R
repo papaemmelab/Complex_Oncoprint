@@ -270,6 +270,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   saveFile.1 <-  Init.List$saveFile.1
   saveFile.2 <-  Init.List$saveFile.2
+  saveFile.2 <- gsub("png", "pdf", saveFile.2)
+  
   my.fonts <-  Init.List$font.obj
   
   data <- Init.List$data
@@ -421,7 +423,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #============================
   # if showing RESPONSE ====  
   #============================
-  
+
   if (show.response){
     
     cat(paste0("\nPrepare RESPONSE...\n"))
@@ -534,8 +536,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   ################################################################
   # Sort lookup table with the same order of M cols (TARGET_NAMEs)
   ################################################################
-  
-    if (!is.null(lookup.table)){
+
+  if (!is.null(lookup.table)){
     rownames(lookup.table) <- lookup.table$TARGET_NAME
     lookup.table <- lookup.table[colnames(M),]
   }
@@ -598,8 +600,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   # # == Create a legend for BLAST if show.MPN= TRUE ====  <<<< must be done here but make sure u use the same thresh
   # ##############################################################
   
-  blast_col <- c("<20"=RD[1], "≥20"=HK1[2])
-  blast_col <- add.alpha(blast_col, alpha = 0.6)
+  blast_col <- c("<20"=DM[6], "≥20"=FH[1])
+  # blast_col <- add.alpha(blast_col, alpha = 0.6)
   
   # browser()
   
@@ -943,7 +945,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   # browser()
   
-  png(saveFile.2, units="in", width = w / 2, height = h / 2, res = 300)
+  cairo_pdf(saveFile.2, width = w / 2, height = h / 2)
+  
+  # png(saveFile.2, units="in", width = w / 2, height = h / 2, res = 300)
   
   # saveFile.2 <- gsub("png", "pdf", saveFile.2)
   # 
