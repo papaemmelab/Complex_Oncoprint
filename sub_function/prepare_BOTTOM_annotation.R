@@ -2,7 +2,8 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
                                       
                                       list.my.cols,legend.title.font,legend.label.font, annot.title.side, 
                                       num.rows.annot.lgd, show.annot.legend, 
-                                      ribbon.size, 
+                                      
+                                      ribbon.size= 1, ## the thickness of bottom annotation ribbons in cm 
                                       
                                       show.ALL= FALSE,
                                       show.MPN= FALSE,
@@ -16,7 +17,9 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
                                       
                                       # legend.direction = NULL,  ## currently sticking to default
 
-                                      na_col = NULL,
+                                      na_col = na_col,
+                                      
+                                      banner.case.exceptions = NULL, # default kept: c("Patient.ID", "MRD_subtype", "CNV.WGS.CNVKIT.RHO", "RNA.EE", "Complex.Karyotype"),
                                       
                                       banner.label.col = "#5b859e"){
   
@@ -42,10 +45,8 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
       banner.name <- toupper(banner.name)
       
       if (show.ALL) {
-        banner.name <- c(banner.name, c("FINAL_SUBTYPE", "CNV.WGS.CNVKIT.RHO", "RNA.EE"))
         df <- df %>% dplyr::select(all_of(unique(c("TARGET_NAME", banner.name))))
       } else if (show.MPN) {
-        # banner.name <- c(banner.name, c("Complex.Karyotype"))
         df <- df %>% dplyr::select(all_of(unique(c("TARGET_NAME", banner.name))))
       } else {
         df <- df %>% dplyr::select(all_of(c("TARGET_NAME", banner.name)))
@@ -75,8 +76,14 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
       #  (banner.name, df colnames, list.my.cols names)
       ###################################################################
       
-      EXCEPT <- c("Patient.ID", "FINAL_SUBTYPE", "CNV.WGS.CNVKIT.RHO", "RNA.EE", "Complex.Karyotype","INDIVIDUAL.ID")
-      title_except <- function(x, except = EXCEPT) ifelse(x %in% except, x, stringr::str_to_title(x))
+      EXCEPT <- unique(c(banner.case.exceptions, c("Patient.ID", "CNV.WGS.CNVKIT.RHO", "RNA.EE", "Complex.Karyotype")))
+      
+      # banner.name is already forced to toupper() above, so exceptions are matched case-insensitively;
+      # the matched EXCEPT entry's own casing (not x's) is used as the displayed/kept name
+      title_except <- function(x, except = EXCEPT) {
+        idx <- match(toupper(x), toupper(except))
+        ifelse(!is.na(idx), except[idx], stringr::str_to_title(x))
+      }
       
       banner.name          <- title_except(banner.name)
       names(list.my.cols)  <- title_except(names(list.my.cols))
@@ -104,27 +111,12 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
         list.my.cols$`RNA.EE`             <- col_fun
       }
       
-      # # Make a label vector if user wants to override the printed labels <<<< you can customize banner name labels here!
-      # if (is.null(banner.name)) {
-      #   # default: only rewrite the label text for display in ALL mode, not the column names
-      #   if (show.ALL) {
-      #     banner.labels <- banner.name
-      #     banner.labels <- gsub("CNV.WGS.CNVKIT.RHO", "WGS.RHO", banner.labels, ignore.case = TRUE)
-      #   } else {
-      #     banner.labels <- NULL
-      #   }
-      # }
-      
       #####################################################################
       ## Unified controls (backward compatible)
       #####################################################################
       # fallbacks if user did not pass explicit overrides
       
       # browser()
-      
-      if (is.null(na_col)) {
-        na_col <- if (show.ALL) "white" else "darkgrey" 
-      }
       
       if (is.null(legend.height)) {
         legend.height <- if (show.ALL || show.MPN) 5 else 20
@@ -157,13 +149,13 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
         col  = list.my.cols,
         na_col = na_col,
         simple_anno_size = unit(ribbon.size, "cm"),
-        annotation_height = rep(unit(20, "mm"), length(banner.name)),
-        gap = unit(rep(5, ncol(df)), "mm"),
+        gap = unit(1, "mm"),
         show_annotation_name = show_names,
         annotation_label = banner.name,              # NULL if not provided
         show_legend = show.banner.legends,
         annotation_name_offset = unit(20, "mm"),
-        gp = gpar(col = "black"),
+        annotation_name_side = "right",
+        annotation_name_rot = 0,
         annotation_name_gp = gpar(fontsize = legend.title.font, fontface = "bold", col = banner.label.col),
         annotation_legend_param = list(
             title_gp = gpar(fontsize = legend.title.font, fontface = "bold"),

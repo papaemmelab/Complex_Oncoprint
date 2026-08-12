@@ -17,6 +17,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            show.response= FALSE, response.order= NULL, # ******* allows pre-defined orders
                                         
                                            show.another.banner=FALSE, banner.name= NULL, 
+
+                                           banner.case.exceptions = NULL, # default exceptions set in prepare_BOTTOM_annotation : c("Patient.ID", "MRD_subtype", "CNV.WGS.CNVKIT.RHO", "RNA.EE", "Complex.Karyotype")
+                                           
+                                           custom.banner.colors = NULL, # named list of palettes for banners with no default in heatmap_colors(), e.g. list(TREATMENT_ARM= c("ArmA"="#1f77b4","ArmB"="#ff7f0e")); merged into list.ht.colors for this run only
                                            
                                            show.ALL= FALSE, ## added specifically for ALL prj. keep it as temp for other adaptations
                                         
@@ -73,7 +77,11 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            multis.dot.size = 0.8, #****FONTs: row.groupname.font is the same as rows.font
                                            
-                                           right.w= 13, top.w= 8 , ribbon.size= 1, w=50, h=50,  #**** Sizes of barplots and fig 
+                                           right.w= 13, top.w= 8 , 
+                                           
+                                           ribbon.size= 1, # height (cm) of each bottom banner/annotation row
+                                           
+                                           w=50, h=50,  #**** Sizes of barplots and fig 
                                            
                                            axis.side= "left",
                                            top.annot.axis.side= "left",
@@ -81,7 +89,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                         
                                            banner.label.col= "#5b859e",
                                            legend.height = 20,
-                                           na_col = "darkgrey"
+                                           na_col = "white"
                                         ){
   
   ## must be main branch
@@ -97,66 +105,136 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   graphics.off()
   
   #==================================================================================
-  #   Written by Noushin Farnoud, Jul 2018. Last Update Dec June 2020  ====
-  #----------------------------------------------------------------------------------
-  #   The main function to plot the histogram of MUTATIONs [required], CNVs [optional] and Structural Varianrs (SVs) [optional]
-  #   mut.order/mut.order/cytogenetics.order
-  # === Input Variant info ====
-  #==========================================   
-  #   muts [required]                     List of mutations (required columns : TARGET_NAME, EFFECT (e.g., missense), GENE (the order is not important, you can have additional cols (e.g., stopgain)))
-  #   cnvs [optional]                     List of CNVs (required columns : TARGET_NAME, EFFECT (AMP/DEL/..), VAR_ID (e.g., del(2q)) (the order is not important, you can have additional cols)) [default = NULL] 
-  #   svs [optional]                      List of SVs (required columns : TARGET_NAME, EFFECT (e.g., fusion), VAR_ID (the row names you like to use for the SV) (the order is not important, you can have additional cols)) [default = NULL] 
-  # === User-defined patient/gene order ====
-  #==========================================
-  #   muts/cnvs/svs.order [optional]      default row-order of genes/events is based on clustering the data, otherwise specify your desired order for each data type [default = NULL] 
-  #   patients.order [optional]           default col-order of patients is based on clustering the data, otherwise specify your order [default = NULL] 
-  # === Add annotation rubbons for response/etc ====
-  #=================================================
-  #   show.sample.source [optional]       Add annotation bar to highlight source of the sample.
-  #   show.response [optional]            Add annotation bar for response.
-  #   show.individuals [optional]         Add annotation bar to highlight samples that belong to the same patient (useful for dataset with timeline data for patients).
-  #   show.individuals.legend             Do you want to add a legend for patients? (only used when show.individuals is set to TRUE) [default= FALSE]
-  #   lookup.table                        If any annotation bar is set to on, you must pass a table that sumamrizes sample-feature properties (e.g., TARGET-NAME/RESPONSE)
-  # === Control display features ====
-  #==========================================
-  #   show.sample.names                   Add sample names as the column names [default= TRUE]
-  #   show.border [optional]              Add a box around the frequency barplots [default= FALSE]
-  #   show.multis [default = FALSE]       If set on, a dot will be displayed on grid elements (gene-sample pair) that have >1 variant. ***NOTE: this currently affects the clustering.
-  #   rem.empty                           Remove samples (columns) that have no variant from the oncoprint.
-  # === Main Heatmap legend params ====
-  #====================================
-  #   heatmap.legend.side                 The side that the main mutation-legend is displayed [default= right]
-  #   mut.legend.title.side               The position of the mutation-legend title [default= topleft]
-  #   num.rows.heatmap.lgd                Number of rows for the mutation-legend 
-  # === Annotation ribbon(s) legend params ====
-  #=============================================
-  #   annot.legend.side                   The side that the legend for the optional added annotation bar(s) (for response, disease, or cell.type) are displayed [default= bottom]
-  #   annot.title.side                    The side that the annotation bar legend titles are displayed [default= leftcenter]
-  #   num.rows.annot.lgd                  Number of rows for annotation bar legend(s)
-  # === Control oncoprint title and display ====
-  #==============================================
-  #   min.freq                            Only applicable for MUTATIONs data: only show GENEs that have >= min.freq mutations [default = 1] 
-  #   show.title [default= TRUE]          Display the figure title. By default this option is set on and if no added title string is (next option) is defined the figure will have a title that reports the total # variants and samples
-  #   title.str                           The optional title of the figure, By default this will be followed by the total number of variants in the dataset and number of samples/patients
-  #   save.path                           The directory of the output oncoplot : by default the name of the plot is hardcoded as : save.path/"Heatmap_minFreq_",min.freq,".tiff"
-  # === Control Font size ====
-  #==============================================
-  #   cols.font                           Sample names font size (i.e., columns) [default = 18]
-  #   rows.font                           Gene/CNV/SV names font size (i.e., rows) [default = 18]
-  #   pct.font                            Font size for the percentage frequency that is shown on the left [default = 16]
-  #   legend.label.font                   Heatmap/annotation legend font size [default = 10]
-  #   legend.title.font                   Font size for the legend title [default = 14]
-  #   fig.title.font                      Oncorpting title font size
-  #   barplot.font                        Font size for the axis of the frequency barplots that is shown at the top and right of the plot [default = 10]
-  # === Control Figure size ====
-  #==============================================
-  #   right.w                             Size of the area for the right barplot (to display the gene frequency bar) [default = 13]
-  #   top.w                               Size of the area for the top barplot (to display the patients frequency bar) [default = 8]
-  #   w/h                                 The width and height of the saved figure [default = 3200/1800]
-  # 
-  #   Contact Noushin Farnoud (rahnaman@mskcc.org) if you faced any error.
-  # 
-  #    See also example_Heatmap, test_required_fields.
+  #' @title Generate a complex oncoprint
+  #'
+  #' @description A wrapper around the ComplexHeatmap package (\code{oncoPrint}/\code{Heatmap})
+  #'   that facilitates building oncoprints for most commonly used features. 
+  #'   Plots MUTATIONs [required], CNVs [optional], and Structural Variants (SVs)
+  #'   [optional] as a single oncoprint, with optional survival, response and custom
+  #'   bottom-banner annotations.
+  #' @author Written by Noushin Farnoud (rahnaman@mskcc.org), Jul 2018. Last Update Aug 2026.
+  #' @seealso example_Heatmap, test_required_fields
+  #'
+  #' @references Thanks to Zuguang Gu for the ComplexHeatmap package this function wraps:
+  #'   \url{https://github.com/jokergoo/ComplexHeatmap}. Gu Z (2016). "Complex heatmaps reveal
+  #'   patterns and correlations in multidimensional genomic data." Bioinformatics.
+  #'
+  #' @section Input Variant Data:
+  #' @param muts Data frame of mutations (required). Required cols: TARGET_NAME, EFFECT (e.g. "missense"), GENE. Extra cols allowed.
+  #' @param cnvs Data frame of CNVs. Required cols: TARGET_NAME, EFFECT (e.g. "AMP"/"DEL"), VAR_ID (e.g. "del(2q)"). Default NULL.
+  #' @param svs Data frame of SVs. Required cols: TARGET_NAME, EFFECT (e.g. "fusion"), VAR_ID (row name to display). Default NULL.
+  #'
+  #' @section Cell-type Panel:
+  #' @param cell.type.heatmap Optional cell-type/CIBERSORT matrix; if supplied, an extra heatmap panel is appended via add_cibersort_panel.R. Default NULL.
+  #'
+  #' @section Row/Column Order:
+  #' @param cnvs.order Row order of CNV genes/events; default NULL uses clustering.
+  #' @param svs.order Row order of SV genes/events; default NULL uses clustering.
+  #' @param muts.order Row order of mutated genes; default NULL uses clustering.
+  #' @param patients.order Column order of samples/patients; default NULL uses clustering.
+  #'
+  #' @section Section Labels:
+  #' @param sec.1.label Row-split label for the mutation section. Default "MUT".
+  #' @param sec.2.label Row-split label for the CNV section. Default "CNVs".
+  #' @param sec.3.label Row-split label for the SV section. Default "SVs".
+  #'
+  #' @section Highlighting & Filtering Events:
+  #' @param highlight.events Gene/event names to always keep in CNVs/SVs regardless of `min.freq`; only protects MUTs if `include.these.events` is also set (see NOTE).
+  #' @param include.these.events Gene/event names to always keep in MUTs/CNVs/SVs regardless of `min.freq`.
+  #' @param min.freq Only show GENEs with >= min.freq mutations. Default 1.
+  #'
+  #' @section Survival (under development):
+  #' @param surval.data Optional survival data frame; enables the survival legend when combined with `show.survival`. Default NULL.
+  #' @param show.survival Turn on the Dead/Alive survival legend. Default FALSE.
+  #'
+  #' @section Blast / MPN Display:
+  #' @param show.blast Add a Blast (<10/>10 or <20/>=20) point legend to the top annotation. Default FALSE.
+  #' @param show.MPN Turn on MPN-specific display options (blast points, complex karyotype, etc). Default FALSE.
+  #'
+  #' @section Response Annotation:
+  #' @param show.response Add a bottom banner colored by `lookup.table$RESPONSE`. Default FALSE.
+  #' @param response.order Order of levels shown in the response legend. Default NULL.
+  #'
+  #' @section Bottom Banner Annotations:
+  #' @param show.another.banner Turn on to add extra bottom banner(s) named in `banner.name`. Default FALSE.
+  #' @param banner.name Column name(s) in `lookup.table` to show as bottom banner(s), e.g. c("Gender","Final_subtype"). Default NULL.
+  #' @param banner.case.exceptions Banner/column names to keep exactly as-is instead of Title Case (default set in prepare_BOTTOM_annotation.R). Default NULL.
+  #' @param custom.banner.colors Named list of palettes for banners with no default in heatmap_colors(), e.g. list(TREATMENT_ARM = c("ArmA"="#1f77b4")); merged into the default colors for this run only. Default NULL.
+  #'
+  #' @section Project-specific Modes:
+  #' @param show.ALL Turn on the ALL-project-specific banner set (subtype/gender/purity/EE) built in add_ALL_banners.R. Default FALSE.
+  #' @param show.purity Add a purity annotation to the top barplot. Default FALSE.
+  #'
+  #' @section Patient/Individual Annotation:
+  #' @param show.individuals Add a bottom banner grouping samples that belong to the same patient (useful for timeline datasets). Default FALSE.
+  #' @param show.individuals.legend Show a legend for the patient banner (only used when `show.individuals` is TRUE). Default FALSE.
+  #' @param lookup.table Sample-level metadata table (e.g. TARGET_NAME/RESPONSE/GENDER/...); required whenever any annotation bar is turned on. Default NULL.
+  #'
+  #' @section Display Features:
+  #' @param show.sample.names Show sample names as column names. Default TRUE.
+  #' @param show.border Draw a box around the frequency barplots. Default FALSE.
+  #' @param show.multis If TRUE, a dot is drawn on gene-sample pairs with >1 variant. NOTE: this currently affects clustering. Default TRUE.
+  #' @param multi.col Color of the multi-hit dot drawn when `show.multis` is TRUE. Default "black".
+  #' @param highlight.multis.cell If TRUE, also highlights the fill of multi-hit cells (in addition to the dot); color set in define_ALTER_fun.R. Default FALSE.
+  #' @param rem.empty Remove samples (columns) with no variants from the oncoprint. Default TRUE.
+  #'
+  #' @section Column Splitting:
+  #' @param split.cols.by Column name in `lookup.table` used to compute an additional sample split/order factor (see prepare_COMPLEX_aes.R). Default NULL.
+  #' @param column_split Pre-computed split vector/factor passed directly to `oncoPrint(column_split=)`. Default NULL.
+  #'
+  #' @section Main Heatmap Legend:
+  #' @param heatmap.legend.side Side where the main mutation legend is displayed. Default "right".
+  #' @param mut.legend.title.side Position of the mutation legend title; must be topleft/topcenter/etc. Default "topleft".
+  #' @param num.rows.heatmap.lgd Number of rows for the mutation legend. Default NULL.
+  #'
+  #' @section Annotation Legend:
+  #' @param annot.legend.side Side where the optional annotation bar legend(s) are displayed. Default "bottom".
+  #' @param annot.title.side Position of the annotation legend title(s); one of topleft/topcenter/leftcenter/lefttop/leftcenter-rot/lefttop-rot. Default "topleft".
+  #' @param num.rows.annot.lgd Number of rows for the annotation legend(s). Default NULL.
+  #'
+  #' @section Title & Save Path:
+  #' @param show.title Display the figure title (defaults to a summary of variants/samples if `title.str` is NULL). Default TRUE.
+  #' @param show.min.freq Include the `min.freq` value in the auto-generated title. Default TRUE.
+  #' @param title.str Custom figure title prefix; the variant/sample summary is appended after it. Default NULL.
+  #' @param save.path Output directory for the saved oncoprint. Defaults to the current working directory if NULL.
+  #' @param save.name Base file name for the saved oncoprint (passed to initialize_data.R). Default NULL.
+  #'
+  #' @section Font Sizes:
+  #' @param cols.font Sample name (column) font size. Default 25.
+  #' @param rows.font Gene/CNV/SV name (row) font size. Default 25.
+  #' @param pct.font Font size of the left-side percentage frequency labels. Default 20.
+  #' @param legend.label.font Font size of legend labels (heatmap + annotation legends). Default 20.
+  #' @param legend.title.font Font size of legend titles. Default 25.
+  #' @param fig.title.font Font size of the figure title. Default 28.
+  #' @param barplot.font Font size of the top/right frequency barplot axis ticks. Default 25.
+  #' @param multis.dot.size Size of the multi-hit dot (same scale used for `rows.font`). Default 0.8.
+  #'
+  #' @section Figure & Barplot Size:
+  #' @param right.w Width (cm) of the right gene-frequency barplot area. Default 13.
+  #' @param top.w Height (cm) of the top sample-frequency barplot area. Default 8.
+  #' @param ribbon.size Height (cm) of each bottom banner/annotation row. Default 1.
+  #' @param w Width (px, at res=300) of the saved figure. Default 50.
+  #' @param h Height (px, at res=300) of the saved figure. Default 50.
+  #'
+  #' @section Top Annotation Axis:
+  #' @param axis.side Side of the main oncoprint frequency-axis ticks. Default "left".
+  #' @param top.annot.axis.side Side of the top-annotation barplot axis ticks. Default "left".
+  #' @param top.annotation_name_side Side where top-annotation names are drawn. Default "left".
+  #'
+  #' @section Bottom Banner Appearance:
+  #' @param banner.label.col Text color for the bottom banner name labels. Default "#5b859e".
+  #' @param legend.height Height (cm) of the annotation legend(s). Default 20.
+  #' @param na_col Fill color for missing/NA values in the bottom banners. Default "white".
+  #'
+  #' @return A list with:
+  #'   \describe{
+  #'     \item{ht.obj}{The drawn ComplexHeatmap/oncoPrint object (or cibersort-combined object).}
+  #'     \item{onco.samples}{Final column (sample) order used in the plot.}
+  #'     \item{onco.genes}{Final row (gene/event) order used in the plot.}
+  #'     \item{Fig.Path}{Path to the saved oncoprint PDF.}
+  #'     \item{mut_matrix}{The alteration matrix (M) used to build the oncoprint.}
+  #'     \item{draw.specs}{List of draw() params (LABS, legend sides/lists) to re-draw outside this function.}
+  #'   }
   #==================================================================================
   
   # browser()
@@ -279,15 +357,22 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   gene.list= Init.List$gene.list
   
-  # browser()
   ####################################
   # Load colors  ====
   ####################################
+  
+  # browser()
   
   cat(paste0("\nLoading default oncopring colors...\n"))
   
   source(file.path("./sub_function/heatmap_colors.R"))
   list.ht.colors <- heatmap_colors()
+  
+  if (!is.null(custom.banner.colors)) {
+    list.ht.colors <- modifyList(list.ht.colors, custom.banner.colors)
+  }
+  
+  source(file.path("./sub_function/match_default_colors.R"))
   
   # test colors if not shown properly
   #----------------------------------------------
@@ -468,10 +553,12 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   banner.name = toupper(banner.name)
   
+  # Case/punctuation/suffix-insensitive match of banner names to their default palette,
+  # plus alias lookup for banners that share another palette's name (see banner_palette_aliases)
   for (banner_name in banner.name) {
-    banner_name
-    if (banner_name %in% names(list.ht.colors)) {
-      list.my.cols[[banner_name]] <- list.ht.colors[[banner_name]]
+    pal <- resolve_banner_palette(banner_name, list.ht.colors)
+    if (!is.null(pal)) {
+      list.my.cols[[banner_name]] <- pal
     }
   }
   
@@ -788,6 +875,7 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                       show.MPN = show.MPN,
                                       banner.label.col= banner.label.col,
                                       legend.height = legend.height,
+                                      banner.case.exceptions= banner.case.exceptions,
                                       na_col = na_col)
     
   #################################################################################################

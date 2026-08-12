@@ -41,11 +41,12 @@ prepare_TOP_annotation <- function(list.colors,show.border,
   
   ####################################
   ####################################
-  # browser()
-  
+
   #== ALL options ====
   
-  if (show.ALL){
+  show.MPN.historic = FALSE 
+  
+  if (show.MPN.historic){
     
     # browser()
     col_fun = colorRamp2(c(0, 50, 100), c("blue", "white", "#af4f2f"))

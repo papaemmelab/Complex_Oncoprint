@@ -5,13 +5,15 @@ prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols,
                                 legend.title.font, legend.label.font, 
                                 annot.title.side, 
                                 num.rows.annot.lgd, show.annot.legend, 
-                                ribbon.size, banner.name, 
+                                ribbon.size= 1, 
+                                banner.name, 
                                 rows.font,
                                 split.cols.by,
                                 show.ALL= FALSE,
                                 show.MPN= FALSE,
                                 banner.label.col = "#5b859e",
                                 legend.height = NULL,
+                                banner.case.exceptions = NULL, # default exceptions set in prepare_BOTTOM_annotation : c("Patient.ID", "MRD_subtype", "CNV.WGS.CNVKIT.RHO", "RNA.EE", "Complex.Karyotype")
                                 na_col = NULL) {
   
   MN <- met.brewer("Monet", type = "discrete")
@@ -64,11 +66,13 @@ prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols,
     BotAnnot <- prepare_BOTTOM_annotation(df, list.my.cols,
                                           legend.title.font,legend.label.font,
                                           annot.title.side, num.rows.annot.lgd, show.annot.legend, 
-                                          ribbon.size, banner.name= banner.name, 
+                                          ribbon.size= ribbon.size, 
+                                          banner.name= banner.name, 
                                           show.individuals= show.individuals,
                                           show.ALL= show.ALL,
                                           show.MPN= show.MPN,
                                           banner.label.col= banner.label.col,
+                                          banner.case.exceptions= banner.case.exceptions,
                                           legend.height = legend.height,
                                           na_col = na_col
                                           )

@@ -37,9 +37,9 @@ heatmap_colors <-  function() {
   ZIS <<- wes_palette("Zissou1")
   GB2 <<- wes_palette("GrandBudapest2")
   CV <<- wes_palette("Cavalcanti1")
-  ACT3 <- wes_palette("AsteroidCity3")
-  ACT1 <- wes_palette("AsteroidCity1")
-  ACT2 <- wes_palette("AsteroidCity2")
+  ACT3 <<- wes_palette("AsteroidCity3")
+  ACT1 <<- wes_palette("AsteroidCity1")
+  ACT2 <<- wes_palette("AsteroidCity2")
   
   
   #############################################
@@ -80,8 +80,8 @@ heatmap_colors <-  function() {
                        "stop_gained"=  RD[2],
                        "stop_gain"=  RD[2],
 
-                       "splice_site_variant"= DM[6], #RD[9], # HK1[5] mice yellow, #RD[3],
-                       "splicing"= DM[6], 
+                       "splice_site_variant"= "#604E97CC", #DM[6], #RD[9], # HK1[5] mice yellow, #RD[3],
+                       "splicing"= "#604E97CC", #DM[6], 
                        "extended_intronic_splice_region_variant"= "#5E3C99CC", 
                        
                        "frameshift"= DM[2],
@@ -120,8 +120,8 @@ heatmap_colors <-  function() {
                        "trans"= GB2[2], #RD[8],LK[1]
                        "TRA"= GB2[2],
                        
-                       "INV"= GB2[4],
-                       "inv"= GB2[4],
+                       "INV"= "#604E97CC", #GB2[4],
+                       "inv"="#604E97CC",
                        
                        "fusion"= ZIS[1], #RD[3],
                        "FUS"= ZIS[1], 
@@ -151,7 +151,7 @@ heatmap_colors <-  function() {
   # mut.colors[!tolower(names(mut.colors)) %in% specific_names] <- add.alpha(mut.colors[!(tolower(names(mut.colors)) %in% specific_names)], 0.8)
   
   # specific_names <- c("gain", "loss", "cnloh","loh","biallelic","complex","truncating")
-  specific_names <- c("biallelic","complex","truncating","INV","multi_hit","splicing") # Halv poster
+  specific_names <- c("biallelic","complex","INV","multi_hit","splicing") # Halv poster
   
   # browser()
   # only mut these (MPN)
@@ -350,7 +350,6 @@ heatmap_colors <-  function() {
     "excluded" = "#000000",
     "Not Available" = "#FFFFFF",
     "No-WGS"=  "#FFFFFF",
-    "No-RNA"=  "#FFFFFF",
     "Normal"= MN[9],
     "Other" = "#C2C2C2",
     "other"= "#C2C2C2",
@@ -359,33 +358,33 @@ heatmap_colors <-  function() {
     
     #===========================
     
-    "BCL2/MYC" = RD[9], #DeR[6],
+    "BCL2/MYC" = ACT2[5], #DeR[6], ### <<< issue
     "BCR-ABL1" = MN[2],
     "BCR-ABL1-like" = MN[3],
     
-    "CDX2/UBTF" = RD[12],
-    "CDX2_UBTF" = RD[12],
-    "CEBP" = RD[1],
+    "CDX2/UBTF" = HK1[3], #RD[12],
+    "CDX2_UBTF" = HK1[3], #RD[12],
+    "CEBP" = "#9DB07A", ##BE0032CC", #RD[1],
     
-    "DUX4" = RD[2],
+    "DUX4" = "#604E97CC", #RD[2],
     "ETV6-RUNX1"= HK3[1],
     
-    "iAMP21" = "#fdb863",
+    "iAMP21" = "#F4A460", ##fdb863",
     "IKZF1 N159Y"= FH[5],
     
-    "KMT2A Group" = HK1[3], #nice.cols.A[6],
+    "KMT2A Group" = FH[3], #nice.cols.A[6],
     
-    "Hypodiploid" = MN[4],
-    "Low hypodiploid" = MN[4], #RD[8],
+    "Hypodiploid" = FH[1], #"#848482CC", #MN[4],
+    "Low hypodiploid" = FH[1], #"#848482CC", #RD[8],
     
-    "High hyperdiploid" = HK1[1], #RD[8], #MN[4],
-    "Hyperdiploid" = HK1[1], #RD[8], #MN[4],
+    "High hyperdiploid" = "#E68FACCC",     #HK1[1], #RD[8], #MN[4],
+    "Hyperdiploid" = "#E68FACCC",          #RD[8], #MN[4],
     
-    "MEF2D" = TP[5], #FH[1],
-    "Near haploid" = FH[3],
+    "MEF2D" = FH[4],                       #C2B280CC", #TP[5], #FH[1],
+    "Near haploid" = MN[7],                #FH[3],
     
-    "PAX5 P80R" = RD[11],
-    "PAX5alt" = RD[7],
+    "PAX5 P80R" = "#F3C300CC", #RD[11],
+    "PAX5alt" = "#730606CC", #RD[7],
     
     "Ph" = MN[2],
     "Ph-like" = MN[3],
@@ -406,20 +405,20 @@ heatmap_colors <-  function() {
     "CRLF2" = HK3[2],
     "P2RY8-CRLF2"= HK3[3],
     "Complex karyotype" = DM[4],
-    "IGH-ID4" = DeR[2],
-    "ZEB2" = DeR[3],
+    "IGH-ID4" = "#8DB600CC", #DeR[2],
+    "ZEB2" = ACT1[1] #DeR[3],
     
-    "other" = FH[6]
   )
   
   # Convert the list to a named vector if needed
   ALL.SUBTYPE <- unlist(subtype_colors)
   ALL.SUBTYPE <- ALL.SUBTYPE[sort(names(ALL.SUBTYPE))]
-  
   ALL.SUBTYPE <- unlist(ALL.SUBTYPE)
   
-  # ALL.SUBTYPE <- add.alpha(ALL.SUBTYPE, alpha = .6)
+  specific_names <- c("IGH-ID4","DUX4","Near haploid","CDX2/UBTF") 
   
+  ALL.SUBTYPE[!names(ALL.SUBTYPE) %in% specific_names] <- add.alpha(ALL.SUBTYPE[!(names(ALL.SUBTYPE) %in% specific_names)], alpha = .75)
+
   ####################################
   # == ALL CNV.WGS.CNVS.CALLS cols ----
   ####################################
@@ -531,6 +530,10 @@ heatmap_colors <-  function() {
   
   #====================================================
   
+  MRD <- c("Negative" = "#E4B60B", "Positive" = "#8E1B4C")  # nice colors. keep 
+  
+  #====================================================
+  
   return(list(mut.colors= mut.colors, 
               default.mut.colors= mut.colors.def,
               #cyto.colors=cyto.colors,  
@@ -552,7 +555,9 @@ heatmap_colors <-  function() {
               EE= purity_colors,
               COMPLEX.KARYOTYPE= complex.colors,
               
-              DISEASE.PROGRESSION= DISEASE.PROGRESSION
+              DISEASE.PROGRESSION= DISEASE.PROGRESSION,
+              
+              MRD_BEST = MRD
               # Complex.Karyotype = Complex.Karyotype
   )) 
   
