@@ -61,12 +61,10 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
                                            
                                            include.these.events= NULL,
                                         
-                                           show.title= TRUE, 
+                                           add.default.subtitle= TRUE, 
                                         
-                                           show.min.freq = TRUE,
-                                           
                                            title.str= NULL, 
-                                           
+                                        
                                            save.path= NULL, # ******* title and save path
                                            
                                            save.name= NULL,
@@ -108,9 +106,9 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #' @title Generate a complex oncoprint
   #'
   #' @description A wrapper around the ComplexHeatmap package (\code{oncoPrint}/\code{Heatmap})
-  #'   that facilitates building oncoprints for most commonly used features. 
-  #'   Plots MUTATIONs [required], CNVs [optional], and Structural Variants (SVs)
-  #'   [optional] as a single oncoprint, with optional survival, response and custom
+  #'   that facilitates building oncoprints without hand-writing the underlying ComplexHeatmap
+  #'   calls each time. Plots MUTATIONs [required], CNVs [optional], and Structural Variants (SVs)
+  #'   [optional] as a single oncoprint, with optional survival, response, subtype, and custom
   #'   bottom-banner annotations.
   #' @author Written by Noushin Farnoud (rahnaman@mskcc.org), Jul 2018. Last Update Aug 2026.
   #' @seealso example_Heatmap, test_required_fields
@@ -193,9 +191,8 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   #' @param num.rows.annot.lgd Number of rows for the annotation legend(s). Default NULL.
   #'
   #' @section Title & Save Path:
-  #' @param show.title Display the figure title (defaults to a summary of variants/samples if `title.str` is NULL). Default TRUE.
-  #' @param show.min.freq Include the `min.freq` value in the auto-generated title. Default TRUE.
-  #' @param title.str Custom figure title prefix; the variant/sample summary is appended after it. Default NULL.
+  #' @param title.str Your custom title text (or NULL for none). Always used as the base/prefix of the figure's `column_title` - this is NOT overridden by `add.default.subtitle`.
+  #' @param add.default.subtitle If TRUE, appends an auto-generated stats summary (total alterations, gene/sample counts, and `min.freq` if `show.min.freq=TRUE`) after `title.str`. If FALSE, the title is exactly `title.str` with nothing appended. Default TRUE.
   #' @param save.path Output directory for the saved oncoprint. Defaults to the current working directory if NULL.
   #' @param save.name Base file name for the saved oncoprint (passed to initialize_data.R). Default NULL.
   #'
@@ -399,7 +396,20 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   
   # BE CAREFUL do not unique data : you will loose cases where a gene has multiple variants in the same patient 
   
-  SAMPLES = as.data.frame(with(data, table(TARGET_NAME)),stringsAsFactors = FALSE)
+  # SAMPLES = as.data.frame(with(data, table(TARGET_NAME)),stringsAsFactors = FALSE)
+  
+  if (!is.null(lookup.table)) {
+    SAMPLES <- data.frame(TARGET_NAME = unique(as.character(lookup.table$TARGET_NAME)), stringsAsFactors = FALSE)
+    
+    missing.from.lookup <- setdiff(unique(as.character(data$TARGET_NAME)), SAMPLES$TARGET_NAME)
+    
+    if (length(missing.from.lookup) > 0) {
+      stop(paste0("\n*** These TARGET_NAME(s) have variants in your data but are missing from lookup.table: '",
+                  paste(missing.from.lookup, collapse = "', '"), "'. Fix lookup.table before proceeding.\n"))
+    }
+  } else {
+    SAMPLES <- as.data.frame(with(data, table(TARGET_NAME)),stringsAsFactors = FALSE)
+  }
   
   ###############################################################
   # == Prepare M and populate matrix of variants  ====
@@ -740,18 +750,15 @@ generate_complex_oncoprint <-  function(muts= muts, cnvs= NULL, svs= NULL ,  # *
   cat(paste0("\nSet row/col orders...\n"))
   
   cat(paste("\n **** You chose min.freq to filter all events = ", min.freq))
-  Gene.Freq = min.freq
 
   # browser()
   
-  if (show.title){
-    if (show.min.freq){
-      # my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", Gene.Freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
-      my.title <- paste0(title.str," \nTotal Alterations: ", nrow(data),", Unique Events: ", length(unique(muts$GENE)),", Total Samples: ", ncol(M),", # Min.Freq >= ",  Gene.Freq)
-      
-    } else{
-      my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Top Genes = ",length(unique(muts$GENE)),"; # Samples (Top Category) =", ncol(M))
-    }
+  if (add.default.subtitle){
+      # my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Genes with >= ", min.freq ," mutations = ",length(unique(muts$GENE)),"; # Samples =", ncol(M))
+      my.title <- paste0(title.str," \nTotal Alterations: ", nrow(data),", Unique Events: ", length(unique(muts$GENE)),", Total Samples: ", ncol(M),", # Min.Freq >= ",  min.freq)
+    # } else{
+    #   my.title <- paste0(title.str," \n# Alterations= ", nrow(data),"; # Top Genes = ",length(unique(muts$GENE)),"; # Samples=", ncol(M))
+    # }
   } else {
     my.title <- title.str    
   }

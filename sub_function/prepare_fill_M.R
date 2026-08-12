@@ -35,6 +35,21 @@ prepare_fill_M <- function(long_df, SAMPLES, GENES, remove.empty.cols = TRUE, sh
   
   mat$GENE = NULL
   
+  # pivot_wider only creates a column for samples that had >=1 matching mutation, so
+  # samples with 0 selected mutations are silently missing here (remove.empty.cols was
+  # never actually consulted) - add them back as all-empty columns, then honor the flag
+  missing.samples <- setdiff(SAMPLES, colnames(mat))
+  
+  if (length(missing.samples) > 0) {
+    mat[missing.samples] <- ""
+  }
+  
+  mat <- mat[, intersect(SAMPLES, colnames(mat)), drop = FALSE]
+  
+  if (remove.empty.cols) {
+    mat <- mat[, colSums(mat != "") > 0, drop = FALSE]
+  }
+  
   events <- factor(unique(long_df$EFFECT), levels=event_levels)
   events <- as.character(events[order(events)])
 
