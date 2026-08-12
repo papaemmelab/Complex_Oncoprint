@@ -1,65 +1,45 @@
-initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.order, lookup.table, REQ.cols, save.path, params){
+initialize_data <- function(data, muts, cnvs= NULL, svs= NULL, muts.order= NULL, cnvs.order= NULL, svs.order= NULL, min.freq= 1, 
+                            lookup.table, sec.1.label= sec.1.label, sec.2.label=NULL, sec.3.label=NULL, save.path, save.name= NULL){
   
   ###############################################
-  save.name = eval(params$save.name)
+  # save.name = eval(params$save.name)
   
-  min.freq <- params$min.freq
-  
+  setwd("~/Documents/Complex_Oncoprint/")
 
   if (is.null(save.name)){
-    saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,".jpg"))
-    saveFile.2 <- file.path(save.path,paste0("Heatmap_minFreq_",min.freq,".jpg"))
+    saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,".png"))
+    saveFile.2 <- file.path(save.path,paste0("Oncoprint_minFreq_",min.freq,".png"))
     
   } else {
-    saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,"_",save.name,".jpg"))
-    saveFile.2 <- file.path(save.path,paste0("Heatmap_minFreq_",min.freq,"_",save.name,".jpg"))
+    saveFile.1 <- file.path(save.path,"TEMP",paste0(save.name,"_Heatmap_TEMP_minFreq_", min.freq,".png"))
+    saveFile.2 <- file.path(save.path,paste0(save.name,"_Oncoprint_minFreq_",min.freq,".png"))
     
   }
   
   ###############################################
   # Create FONT.obj for calling simple.ht  ====
   ###############################################
-  font.obj <- list(fig.title.font= params$fig.title.font,
-                   legend.title.font= params$legend.title.font,
-                   cols.font= params$cols.font,
-                   pct.font= params$pct.font,
-                   rows.font= params$rows.font,
-                   barplot.font= params$barplot.font,
-                   legend.label.font= params$legend.label.font
+  font.obj <- list(fig.title.font= eval(substitute(fig.title.font), parent.frame()),
+                   legend.title.font= eval(substitute(legend.title.font), parent.frame()),
+                   cols.font= eval(substitute(cols.font), parent.frame()),
+                   pct.font= eval(substitute(pct.font), parent.frame()),
+                   rows.font= eval(substitute(rows.font), parent.frame()),
+                   barplot.font= eval(substitute(barplot.font), parent.frame()),
+                   legend.label.font= eval(substitute(legend.label.font), parent.frame())
   )
   
-
+  # browser()
   ###############################################################
   # == Add MUTATIONS  ====
   ##############################################################
-  
+
   source(file.path("./sub_function/sort_variants.R"))
   
-  A <- sort_variants(muts, muts.order, group.label= "Substitusions/Indels", variants.class= "Mutations")
+  A <- sort_variants(muts, muts.order,group.label= sec.1.label, variants.class= "MUTs")
   
   data <- A[[1]][,c("TARGET_NAME","GENE","EFFECT")]
   
   gene.list <- A$gene.list
-  
-  ###############################################################
-  # == Add Structural Variants  ====
-  ##############################################################
-  
-  if (!is.null(svs)){
-    
-    if (nrow(svs)==0){
-      stop("\n Size of svs = 0. This may be due to the fact that you currently do not have any svs with the min.freq your specified. Try re-defining the 'min.freq.svs' param...\n")
-    }
-    
-    source(file.path("./sub_function/sort_variants.R"))
-    
-    B <- sort_variants(svs, svs.order, group.label= "SVs", variants.class= "SVs")
-    
-    data <- rbind(data, B[[1]][,c("TARGET_NAME","GENE","EFFECT")])
-    
-    gene.list <- rbind(gene.list, B$gene.list)
-    
-  }
   
   ###############################################################
   # == Add CNVs  ====
@@ -73,13 +53,34 @@ initialize_data <- function(data, muts, cnvs, svs, muts.order, cnvs.order, svs.o
     
     source(file.path("./sub_function/sort_variants.R"))
     
-    D <- sort_variants(cnvs, cnvs.order, group.label= "Cytogenetics", variants.class= "CNVs")
+    D <- sort_variants(cnvs, cnvs.order, group.label= sec.2.label , variants.class= "CNVs") 
     
     data <- rbind(data, D[[1]][,c("TARGET_NAME","GENE","EFFECT")])
     
     gene.list <- rbind(gene.list, D$gene.list)
   }
   
+  ###############################################################
+  # == Add Structural Variants  ====
+  ##############################################################
+  
+  if (!is.null(svs)){
+    
+    if (nrow(svs)==0){
+      stop("\n Size of svs = 0. This may be due to the fact that you currently do not have any svs with the min.freq your specified. Try re-defining the 'min.freq.svs' param...\n")
+    }
+    
+    source(file.path("./sub_function/sort_variants.R"))
+    
+    B <- sort_variants(svs, svs.order, group.label= sec.3.label , variants.class= "SVs") 
+    
+    data <- rbind(data, B[[1]][,c("TARGET_NAME","GENE","EFFECT")])
+    
+    gene.list <- rbind(gene.list, B$gene.list)
+    
+  }
+  
+  ###############################################################
 
   
   return(list(saveFile.1= saveFile.1,

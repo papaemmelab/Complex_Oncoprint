@@ -1,6 +1,7 @@
 test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title.side= annot.title.side,
                                   patients.order= NULL, muts.order= NULL, cnvs.order= NULL, svs.order= NULL,
                                   show.another.banner=FALSE, banner.name= NULL, 
+                                  show.ALL= FALSE,
                                   show.response= FALSE, split.cols.by = NULL, show.individuals= FALSE, lookup.table= NULL)
   {
 
@@ -80,7 +81,26 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
                       "other_svs","other_cnvs","rearr","rearrangements","rearrangement",
                       
                       "N/E", "inconclusive","unavailable","N_E","N/A",
-                      "karyotypic_abnormal"
+                      "karyotypic_abnormal",
+                      
+                      "CNLOH",
+                      "GAIN",
+                      "LOSS",
+                      "deep_LOSS",
+                      "cnloh",
+                      "cngain",
+                      "splicing",
+                      "cnloss",
+                      "truncating",
+                      "inframe",
+                      "frameshift",
+                      "multi_hit_mut",
+                      "multi_hit",
+                      "biallelic",
+                      "multi_hit_mut_cnv",
+                      "multi_muts",
+                      "iso",
+                      "ISO"
   )
                       
   # stop_lost, splice_site_variant, stop_retained_variant, initiator_codon_change can be from both indels or subs in VEP
@@ -109,7 +129,6 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
   }
   
   if (!all(tolower(muts$EFFECT) %in% tolower(mut.VT.options))){
-    cat(paste0("\n\nERROR --- Valid options for EFFECT are : \n", paste(mut.VT.options,collapse  = ", ")))
     stop(paste("\n****Not valid entry for mutation EFFECT  => ", setdiff(muts$EFFECT, mut.VT.options),
                "\n\nCheck available mutation types in README, or change the troublesome EFFECT to 'other_SNVs' or 'other_SVs' to continue."))
   } else {
@@ -197,6 +216,11 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
   if (show.individuals){
     required.cols.lookup <-  c(required.cols.lookup,"INDIVIDUAL.ID")
   }
+  
+  if (show.ALL){
+    required.cols.lookup <-  c(required.cols.lookup,c("CNV.WGS.CNVKIT.RHO", "CNV.WGS.ACE.RHO","EXPRESSION.PROFILING.EFFICIENCY"))
+  }
+  
   
   if ((show.another.banner | show.response | show.individuals ) | (!is.null(split.cols.by))) {
     

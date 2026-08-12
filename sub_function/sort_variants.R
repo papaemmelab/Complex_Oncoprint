@@ -1,5 +1,5 @@
 sort_variants  <- function(vars, genes.order= NULL, group.label=NULL, variants.class= NULL){
-  
+  # browser()
   vars$nrow <- NULL
   # vars.freq <- ddply(vars, c("GENE"), "nrow",.drop = TRUE)
   # vars <- merge(vars, vars.freq, by="GENE")

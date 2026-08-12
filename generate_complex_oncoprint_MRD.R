@@ -22,7 +22,11 @@ generate_complex_oncoprint_MRD <-  function(muts= muts, cnvs= NULL, svs= NULL , 
                                 
                                 num.rows.annot.lgd= NULL,  #******* ANNOT.legend 
                                 
-                                min.freq= 1, show.title= TRUE, title.str= NULL, save.path= save.path, #******* title and save path
+                                min.freq= 1, 
+                                
+                                include.these.events = NULL,
+                                
+                                show.title= TRUE, title.str= NULL, save.path= save.path, #******* title and save path
                                 
                                 save.name= NULL,
                                 
@@ -146,7 +150,11 @@ generate_complex_oncoprint_MRD <-  function(muts= muts, cnvs= NULL, svs= NULL , 
   
   muts <- muts %>% group_by(GENE) %>% mutate(gene.freq= n())
   
-  muts <- muts %>% filter(gene.freq>= min.freq) 
+  if (!is.null(include.these.events)) {
+    muts <- muts %>% filter(gene.freq>= min.freq | GENE %in% include.these.events) 
+  } else {
+    muts <- muts %>% filter(gene.freq>= min.freq)
+  }
   
   muts <- as.data.frame(muts)
   
