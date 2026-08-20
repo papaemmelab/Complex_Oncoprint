@@ -19,9 +19,10 @@ add_ALL_banners <- function(list.my.cols, show.annot.legend, list.ht.colors, loo
   
   
   
-  DNA.col <- match_default_colors(list.ht.colors$ALL.SUBTYPE, lookup.table$DNA_SUBTYPE)
+  DNA.col <- match_default_colors(list.ht.colors$ALL.SUBTYPE, lookup.table$WGS_SUBTYPE)
   
   list.my.cols$DNA_SUBTYPE <- DNA.col
+  list.my.cols$WGS_SUBTYPE <- DNA.col
   
   show.annot.legend <- c(show.annot.legend, "TRUE")
   

@@ -1,6 +1,6 @@
 prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols, 
                                 show.multis, show.another.banner, 
-                                show.response = FALSE, 
+                                show.response = FALSE, # kept for backward-compat with generate_complex_oncoprint_MRD.R/_paired.R; unused here, RESPONSE is now a generic banner
                                 show.individuals= FALSE, show.individuals.legend= FALSE,
                                 legend.title.font, legend.label.font, 
                                 annot.title.side, 
@@ -28,6 +28,8 @@ prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols,
   CAS1 <- met.brewer("Cassatt1", type = "discrete")
   CAS2 <- met.brewer("Cassatt2", type = "discrete")
   
+  # browser()
+  
   #############################
   #### Tag multis (dots) ====
   #############################
@@ -52,7 +54,8 @@ prepare_COMPLEX_aes <- function(data, M, highlight.events, df, list.my.cols,
   
     # Remove INDIVIDUAL.ID from lookup (df) before adding banners
     
-    if ((show.another.banner) | (show.response) | (show.individuals) ) {
+    # if ((show.another.banner) | (show.response) | (show.individuals) ) {
+    if ((show.another.banner) | (show.individuals) ) {
       
       if (!show.individuals){
         df$INDIVIDUAL.ID <- NULL

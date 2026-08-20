@@ -2,7 +2,8 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
                                   patients.order= NULL, muts.order= NULL, cnvs.order= NULL, svs.order= NULL,
                                   show.another.banner=FALSE, banner.name= NULL, 
                                   show.ALL= FALSE,
-                                  show.response= FALSE, split.cols.by = NULL, show.individuals= FALSE, lookup.table= NULL)
+                                  show.response= FALSE, # kept for backward-compat with generate_complex_oncoprint_MRD.R/_paired.R; unused here, RESPONSE is now a generic banner
+                                  split.cols.by = NULL, show.individuals= FALSE, lookup.table= NULL)
   {
 
   #==================================================================================
@@ -139,7 +140,8 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
   # == Check INPUT params  ----
   #===============================
   
-  if (show.another.banner | show.response | show.individuals){
+  # if (show.another.banner | show.response | show.individuals){
+  if (show.another.banner | show.individuals){
     if (is.null(lookup.table)){
     stop(paste("\n****Required INPUT for added annotation is missing =>\t","lookup.table" ,"\n"))
     }}
@@ -205,9 +207,9 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
     }
   }
 
-  if (show.response){
-    required.cols.lookup <-  c(required.cols.lookup,"RESPONSE")
-  }
+  # if (show.response){
+  #   required.cols.lookup <-  c(required.cols.lookup,"RESPONSE")
+  # }
   
   if (!is.null(split.cols.by)){
      required.cols.lookup <-  unique(c(required.cols.lookup, toupper(split.cols.by)))
@@ -222,7 +224,8 @@ test_required_fields  <- function(muts= muts, cnvs= NULL, svs= NULL, annot.title
   }
   
   
-  if ((show.another.banner | show.response | show.individuals ) | (!is.null(split.cols.by))) {
+  # if ((show.another.banner | show.response | show.individuals ) | (!is.null(split.cols.by))) {
+  if ((show.another.banner | show.individuals ) | (!is.null(split.cols.by))) {
     
     colnames(lookup.table) <- toupper(colnames(lookup.table))
     

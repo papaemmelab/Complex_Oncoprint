@@ -40,6 +40,28 @@ match_default_colors <- function(palette, values, quiet = FALSE) {
   matched.colors[!is.na(matched.colors)]
 }
 
+# Merges custom.banner.colors into list.ht.colors, EMBEDDING new labels into an
+# existing named-color-vector palette (keeping its other entries, overriding on
+# name clashes) instead of wholesale replacing it like modifyList() would. New
+# top-level banner names (not already in `base`) are just added as-is.
+merge_banner_colors <- function(base, custom) {
+
+  for (nm in names(custom)) {
+
+    can.embed <- nm %in% names(base) &&
+      is.atomic(base[[nm]]) && is.atomic(custom[[nm]]) &&
+      !is.null(names(base[[nm]])) && !is.null(names(custom[[nm]]))
+
+    if (can.embed) {
+      base[[nm]] <- c(base[[nm]][!(names(base[[nm]]) %in% names(custom[[nm]]))], custom[[nm]])
+    } else {
+      base[[nm]] <- custom[[nm]]
+    }
+  }
+
+  base
+}
+
 #==================================================================================
 #   Alias registry: lets ONE palette in heatmap_colors() serve MANY banner names
 #   that don't resemble its name (e.g. RNA_SUBTYPE/DNA_SUBTYPE/FINAL_SUBTYPE all

@@ -76,7 +76,7 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
       #  (banner.name, df colnames, list.my.cols names)
       ###################################################################
       
-      EXCEPT <- unique(c(banner.case.exceptions, c("Patient.ID", "CNV.WGS.CNVKIT.RHO", "RNA.EE", "Complex.Karyotype")))
+      EXCEPT <- unique(c(banner.case.exceptions, c("Patient.ID", "CNV.WGS.CNVKIT.RHO", "CNV.WGS.ACE.RHO", "RNA.EE", "Complex.Karyotype")))
       
       # banner.name is already forced to toupper() above, so exceptions are matched case-insensitively;
       # the matched EXCEPT entry's own casing (not x's) is used as the displayed/kept name
@@ -92,11 +92,10 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
       #####################################################################
       ## Mode-specific data prep that affects colors/levels, not layout
       #####################################################################
-      # browser()
-      
+
       # MPN: factor levels for Complex.Karyotype (color is added to heatmap_colors but check)
-      if ("complex.karyotype" %in% tolower(colnames(df))){
-          df$Complex.karyotype <- factor(df$Complex.karyotype,
+      if ("Complex.Karyotype" %in% colnames(df)){
+          df$Complex.Karyotype <- factor(df$Complex.Karyotype,
                                          levels = c("complex", "not complex", "not available"))
       }
       
@@ -108,6 +107,7 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
         )
         # assign continuous color functions to these fields in col list
         list.my.cols$`CNV.WGS.CNVKIT.RHO` <- col_fun
+        list.my.cols$`CNV.WGS.ACE.RHO`    <- col_fun
         list.my.cols$`RNA.EE`             <- col_fun
       }
       
@@ -116,10 +116,8 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
       #####################################################################
       # fallbacks if user did not pass explicit overrides
       
-      # browser()
-      
       if (is.null(legend.height)) {
-        legend.height <- if (show.ALL || show.MPN) 5 else 20
+        legend.height <- if (show.ALL || show.MPN) 2 else 1
       }
       
       # if (is.null(legend.direction)) {
@@ -134,14 +132,20 @@ prepare_BOTTOM_annotation <- function(df, ## lookup table
 
       show.banner.legends <- as.logical(show.annot.legend)
       
-      # browser()
-      
       if ((show.individuals) & (!show.individuals.legend)){
         ix = which(banner.name=="Patient.ID")
         show.banner.legends[ix] = FALSE
       }
       
-      # browser()
+      if (all("CNV.WGS.CNVKIT.RHO" %in% banner.name, "CNV.WGS.ACE.RHO" %in% banner.name)){  ## do not show 2 rho legends
+        ix = which(banner.name=="CNV.WGS.CNVKIT.RHO")
+        show.banner.legends[ix] = FALSE
+      }
+
+      if ("Final_subtype" %in% banner.name & ("WGS_subtype" %in% banner.name | "RNA_subtype" %in% banner.name)){  ## do not show 2 rho legends
+        ix = which(banner.name %in% c("RNA_subtype", "WGS_subtype"))
+        show.banner.legends[ix] = FALSE
+      }
       
       h2 <- HeatmapAnnotation(
         df = df %>% dplyr::select(banner.name),

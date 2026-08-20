@@ -6,6 +6,10 @@ initialize_data <- function(data, muts, cnvs= NULL, svs= NULL, muts.order= NULL,
   
   setwd("~/Documents/Complex_Oncoprint/")
 
+    if (!is.null(save.name)) {
+    save.name <- gsub("/", "_", save.name)
+  }
+
   if (is.null(save.name)){
     saveFile.1 <- file.path(save.path,"TEMP",paste0("Heatmap_TEMP_minFreq_",min.freq,".png"))
     saveFile.2 <- file.path(save.path,paste0("Oncoprint_minFreq_",min.freq,".png"))

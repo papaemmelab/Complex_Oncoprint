@@ -220,7 +220,7 @@ heatmap_colors <-  function() {
   ###########################################
   
   eln.molecular.response.colors <- list("CR"= "#80b1d3","PR"= "#b2df8a","NR"="#fb8072","N/E"="#d9d9d9")
-  response.colors <- unlist(eln.molecular.response.colors)
+  eln.molecular.response.colors <- unlist(eln.molecular.response.colors)
   
   ####################################################
   # == pathology.report colors (special case) ----
@@ -417,7 +417,7 @@ heatmap_colors <-  function() {
   
   specific_names <- c("IGH-ID4","DUX4","Near haploid","CDX2/UBTF") 
   
-  ALL.SUBTYPE[!names(ALL.SUBTYPE) %in% specific_names] <- add.alpha(ALL.SUBTYPE[!(names(ALL.SUBTYPE) %in% specific_names)], alpha = .75)
+  ALL.SUBTYPE[!names(ALL.SUBTYPE) %in% specific_names] <- add.alpha(ALL.SUBTYPE[!(names(ALL.SUBTYPE) %in% specific_names)], alpha = .8)
 
   ####################################
   # == ALL CNV.WGS.CNVS.CALLS cols ----
